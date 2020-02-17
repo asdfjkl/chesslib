@@ -30,6 +30,7 @@ SOURCES += \
         gui_printer.cpp \
         main.cpp \
         move.cpp \
+    node_pool.cpp \
         pgn_printer.cpp \
         pgn_reader.cpp \
         polyglot.cpp \
@@ -50,6 +51,7 @@ HEADERS += \
     game_node.h \
     gui_printer.h \
     move.h \
+    node_pool.h \
     pgn_printer.h \
     pgn_reader.h \
     polyglot.h

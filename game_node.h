@@ -47,6 +47,8 @@ public:
      */
     ~GameNode();
 
+    void reset();
+
     /**
      * @brief getId each game node is assigned a unique id
      *        automatically during construction.

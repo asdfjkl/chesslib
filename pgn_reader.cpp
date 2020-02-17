@@ -28,6 +28,7 @@
 #include <QDebug>
 #include <QTextCodec>
 #include <QDataStream>
+#include "node_pool.h"
 
 namespace chess {
 
@@ -1148,7 +1149,10 @@ bool PgnReader::isRow(const QChar &c) {
 }
 
 void PgnReader::addMove(GameNode *&node, Move &m) {
-    GameNode *next = new GameNode();
+    //GameNode *next = new GameNode();
+    //qDebug() << "adding move:";
+    GameNode *next = NodePool::makeNode();
+    //qDebug() << "adding move done";
     Board* board = node->getBoard();
     Board b_next = Board(*board);
     b_next.apply(m);
@@ -1554,10 +1558,9 @@ int PgnReader::getNetxtToken(QString &line, int &idx) {
     return TKN_EOL;
 }
 
+int PgnReader::nReadGame(QTextStream& in, chess::Game* g) {
 
-chess::Game* PgnReader::nReadGame(QTextStream& in) {
-
-    chess::Game* g = new Game();
+    //chess::Game* g = new Game();
     QString starting_fen = QString("");
 
     QStack<GameNode*> *game_stack = new QStack<GameNode*>();
@@ -1572,7 +1575,7 @@ chess::Game* PgnReader::nReadGame(QTextStream& in) {
                 continue;
             } else {
                 std::cerr << "error reading pgn file";
-                return g;
+                return 0;
             }
         }
 
@@ -1603,7 +1606,7 @@ chess::Game* PgnReader::nReadGame(QTextStream& in) {
             continue;
         } else {
             std::cerr << "error reading pgn file";
-            return g;
+            return 0;
         }
     }
 
@@ -1613,7 +1616,7 @@ chess::Game* PgnReader::nReadGame(QTextStream& in) {
             continue;
         } else {
             std::cerr << "error reading pgn file";
-            return g;
+            return 0;
         }
     }
 
@@ -1621,7 +1624,7 @@ chess::Game* PgnReader::nReadGame(QTextStream& in) {
 
     while (!in.atEnd() && !line.isEmpty()) {
         if(line.trimmed().isEmpty()) {
-            return g;
+            return 0;
         }
         //qDebug() << line;
         // if we are at the first line after skipping
@@ -1695,7 +1698,8 @@ chess::Game* PgnReader::nReadGame(QTextStream& in) {
 
         } else {
             std::cerr << "error reading pgn file";
-            return g;
+            //return g;
+            return 0;
         }
     }
 
@@ -1706,26 +1710,21 @@ chess::Game* PgnReader::nReadGame(QTextStream& in) {
             std::cerr << "error reading pgn" << std::endl;
         }
     }*/
-    return g;
+    //return;
+    return 0;
 }
 
-chess::Game* PgnReader::nReadGameFromFile(const QString &filename, const char* encoding, qint64 offset) {
+void PgnReader::nReadGameFromFile(QTextStream &in, qint64 offset, chess::Game *g) {
 
-    QFile file(filename);
 
-    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        throw std::invalid_argument("unable to open file w/ supplied filename");
-    }
-    QTextStream in(&file);
-    QTextCodec *codec = QTextCodec::codecForName(encoding);
-    in.setCodec(codec);
     if(offset != 0 && offset > 0) {
         in.seek(offset);
+        //qDebug() << canseek;
     }
     //qDebug() << "reading game at: " << offset;
-    chess::Game* g = this->nReadGame(in);
-    file.close();
-    return g;
+    this->nReadGame(in, g);
+
+    //return g;
 }
 
 

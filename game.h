@@ -44,6 +44,7 @@ public:
      */
     bool isTreeChanged();
 
+    void reset();
 
     /**
      *  @brief call this function with true if an operation was carried

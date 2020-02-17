@@ -219,8 +219,9 @@ public:
     chess::Game* readGameFromPgnAt(QString &filename, qint64 offset, bool isUtf8);
     PgnHeader readSingleHeaderFromPgnAt(QString &filename, qint64 offset, bool isUtf8);
 
-    chess::Game* nReadGame(QTextStream& in);
-    chess::Game* nReadGameFromFile(const QString &filename, const char* encoding, qint64 offset);
+    int nReadGame(QTextStream& in, chess::Game *g);
+    //chess::Game* nReadGameFromFile(const QString &filename, const char* encoding, qint64 offset);
+    void nReadGameFromFile(QTextStream &in, qint64 offset, chess::Game *g);
 
 
 private:

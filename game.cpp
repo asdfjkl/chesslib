@@ -21,12 +21,14 @@
 #include "game.h"
 #include <QDebug>
 #include <iostream>
+#include "node_pool.h"
 
 namespace chess {
 
 Game::Game() {
 
-    this->root = new GameNode();
+    //this->root = new GameNode();
+    this->root = NodePool::makeNode();
     this->result = RES_UNDEF;
     this->current = root;
     this->treeWasChanged = false;
@@ -36,9 +38,19 @@ Game::Game() {
 
 }
 
+void Game::reset() {
+
+    this->root = NodePool::makeNode();
+    this->result = RES_UNDEF;
+    this->current = root;
+    this->treeWasChanged = false;
+
+    this->wasEcoClassified = false;
+}
+
 Game::~Game() {
-    this->delBelow(this->root);
-    delete this->root;
+    //this->delBelow(this->root);
+    //delete this->root;
 }
 
 GameNode* Game::getRootNode() {
@@ -259,7 +271,8 @@ void Game::applyMove(Move &m) {
         Board b_current = current->getBoard();
         Board b_child = Board(b_current); //b_current.copy_and_apply(m);
         b_child.apply(m);
-        GameNode *new_current = new GameNode();
+        //GameNode *new_current = new GameNode();
+        GameNode *new_current = NodePool::makeNode();
         new_current->setBoard(b_child);
         new_current->setMove(m);
         new_current->setParent(current);
