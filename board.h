@@ -665,6 +665,9 @@ private:
      */
     uint8_t old_board[120];
 
+    // piece lists
+    uint8_t piece_list[2][7][10];
+
     /**
      * @brief turn is either WHITE or BLACK
      */
@@ -696,12 +699,16 @@ private:
     QChar piece_to_symbol(uint8_t idx);
     QString idx_to_str(int idx);
 
+    void init_piece_list();
 
     QMap<quint64, int> transpositionTable;
 
     int zobrist_piece_type(uint8_t piece);
 
     void update_transposition_table();
+
+    void remove_from_piece_list(bool color, uint8_t piece_type, uint8_t idx);
+    void add_to_piece_list(bool color, uint8_t piece_type, uint8_t idx);
 
     friend std::ostream& operator<<(std::ostream& strm, const Board &b);
 

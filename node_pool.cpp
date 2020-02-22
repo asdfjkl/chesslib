@@ -16,8 +16,6 @@ void NodePool::initPool() {
         GameNode *node = new GameNode();
         NodePool::freeList.append(node);
     }
-    qDebug() << "pool init";
-
 }
 
 GameNode* NodePool::makeNode() {

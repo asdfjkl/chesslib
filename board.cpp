@@ -313,6 +313,7 @@ Board::Board() {
         this->board[i] = EMPTY_POS[i];
         this->old_board[i] = 0xFF;
     }
+    this->init_piece_list();
     this->castling_rights = 0;
     this->en_passent_target = 0;
     this->halfmove_clock = 0;
@@ -322,6 +323,33 @@ Board::Board() {
     this->prev_halfmove_clock = 0;
     this->transpositionTable = QMap<quint64, int>();
     this->update_transposition_table();
+}
+
+void Board::init_piece_list() {
+
+    for(int i=0;i<7;i++) {
+        for(int j=0;j<10;j++) {
+            this->piece_list[WHITE][i][j] = EMPTY;
+            this->piece_list[BLACK][i][j] = EMPTY;
+        }
+    }
+    for(uint8_t i=21;i<99;i++) {
+        uint8_t piece = this->board[i];
+        if(!(piece == EMPTY) && !(piece == 0xFF)) {
+            bool color = WHITE;
+            if(piece > 0x80) {
+                piece = piece - 0x80;
+                color = BLACK;
+            }
+            // piece contains now the piece type
+            for(int j=0;j<10;j++) {
+                if(this->piece_list[color][piece][j] == EMPTY) {
+                   this->piece_list[color][piece][j] = i;
+                   break;
+                }
+            }
+        }
+    }
 }
 
 /*
@@ -355,6 +383,7 @@ Board::Board(bool initial_position) {
         }
         this->castling_rights = 0;
     }
+    this->init_piece_list();
     this->en_passent_target = 0;
     this->halfmove_clock = 0;
     this->fullmove_number = 1;
@@ -695,6 +724,7 @@ Board::Board(const QString &fen_string) {
     if(!this->is_consistent()) {
         throw std::invalid_argument("board position from supplied fen is inconsistent");
     }
+    this->init_piece_list();
     this->transpositionTable = QMap<quint64, int>();
     this->update_transposition_table();
 }
@@ -1315,6 +1345,270 @@ QVector<Move> Board::pseudo_legal_moves_from(int from_square, bool with_castles,
  *
  */
 
+
+
+QVector<Move> Board::pseudo_legal_moves_from_pt(int from_square, uint8_t to_square,
+                                         uint8_t piece_type, bool with_castles, bool turn) {
+
+    QVector<Move> moves;
+
+    // pawn moves
+    //if(from_square == ANY_SQUARE )
+    if(piece_type == PAWN) {
+        for(int i=0;i<10;i++) {
+            int from = this->piece_list[turn][PAWN][i];
+            if(from == EMPTY) {
+                break;
+            }
+            uint8_t piece_idx = IDX_WPAWN;
+            if(turn == BLACK) {
+                piece_idx = IDX_BPAWN;
+            }
+            // take up right, or up left
+            for(int j=3;j<=4;j++) {
+                uint8_t idx = from + DIR_TABLE[piece_idx][j];
+                if(idx == to_square && !this->is_offside(idx)) {
+                    if((!this->is_empty(idx) && turn==BLACK && this->is_white_at(idx)) ||
+                            (!this->is_empty(idx) && turn==WHITE && !this->is_white_at(idx))) {
+                        // if it's a promotion square, add four moves
+                        if((turn==WHITE && (idx / 10 == 9)) || (turn==BLACK && (idx / 10 == 2))) {
+                            moves.append(Move(i,idx,QUEEN));
+                            moves.append(Move(i,idx,ROOK));
+                            moves.append(Move(i,idx,BISHOP));
+                            moves.append(Move(i,idx,KNIGHT));
+                        } else {
+                            moves.append(Move(i,idx));
+                        }
+                    }
+                }
+            }
+            // move one (j=1) or two (j=2) up (or down in the case of black)
+            uint8_t idx_1up = from + DIR_TABLE[piece_idx][1];
+            uint8_t idx_2up = from + DIR_TABLE[piece_idx][2];
+            if(idx_2up == to_square && !this->is_offside(idx_2up)) {
+                if((turn == WHITE && (i/10==3)) || (turn==BLACK && (i/10==8))) {
+                    // means we have a white/black pawn in inital position, direct square
+                    // in front is empty => allow to move two forward
+                    if(this->is_empty(idx_1up) && this->is_empty(idx_2up)) {
+                        moves.append(Move(from,idx_2up));
+                    }
+                }
+            }
+            if(idx_1up == to_square && !this->is_offside(idx_1up) && this->is_empty(idx_1up)) {
+                // if it's a promotion square, add four moves
+                if((turn==WHITE && (idx_1up / 10 == 9)) || (turn==BLACK && (idx_1up / 10 == 2))) {
+                    moves.append(Move(from,idx_1up,QUEEN));
+                    moves.append(Move(from,idx_1up,ROOK));
+                    moves.append(Move(from,idx_1up,BISHOP));
+                    moves.append(Move(from,idx_1up,KNIGHT));
+                } else {
+                    moves.append(Move(from,idx_1up));
+                }
+            }
+            // finally, potential en-passent capture is handled
+            // left up
+            if(turn == WHITE && (this->en_passent_target - from)==9) {
+                Move m = (Move(from,this->en_passent_target));
+                moves.append(m);
+            }
+            // right up
+            if(turn == WHITE && (this->en_passent_target - from)==11) {
+                Move m = (Move(from,this->en_passent_target));
+                moves.append(m);
+            }
+            // left down
+            if(turn == BLACK && (this->en_passent_target - from)==-9) {
+                Move m = (Move(from,this->en_passent_target));
+                moves.append(m);
+            }
+            if(turn == BLACK && (this->en_passent_target - from)==-11) {
+                Move m = (Move(from,this->en_passent_target));
+                moves.append(m);
+            }
+        }
+    }
+    if(piece_type == KNIGHT) {
+        for(int i=0;i<10;i++) {
+            int from = this->piece_list[turn][KNIGHT][i];
+            if(from == EMPTY) {
+                break;
+            }
+            int lookup_idx = IDX_KNIGHT;
+            for(int j=1;j<=DIR_TABLE[lookup_idx][0];j++) {
+                uint8_t idx = from + DIR_TABLE[lookup_idx][j];
+                if(idx == to_square && !this->is_offside(idx)) {
+                    if(this->is_empty(idx) ||
+                            (this->piece_color(idx) != turn)) {
+                        moves.append(Move(from,idx));
+                    }
+                }
+            }
+        }
+    }
+    if(piece_type == KING) {
+        for(int i=0;i<10;i++) {
+            int from = this->piece_list[turn][KING][i];
+            if(from == EMPTY) {
+                break;
+            }
+            int lookup_idx = IDX_KING;
+            for(int j=1;j<=DIR_TABLE[lookup_idx][0];j++) {
+                uint8_t idx = from + DIR_TABLE[lookup_idx][j];
+                if(idx == to_square && !this->is_offside(idx)) {
+                    if(this->is_empty(idx) ||
+                            (this->piece_color(idx) != turn)) {
+                        moves.append(Move(from,idx));
+                    }
+                }
+            }
+        }
+    }
+    if(piece_type == ROOK) {
+        for(int i=0;i<10;i++) {
+            int from = this->piece_list[turn][ROOK][i];
+            if(from == EMPTY) {
+                break;
+            }
+            int lookup_idx = IDX_ROOK;
+            for(int j=1;j<=DIR_TABLE[lookup_idx][0] ;j++) {
+                uint8_t idx = from + DIR_TABLE[lookup_idx][j];
+                bool stop = false;
+                while(!stop) {
+                    if(!this->is_offside(idx)) {
+                        if(this->is_empty(idx)) {
+                            if(to_square == idx) {
+                                moves.append(Move(from,idx));
+                                Move m = moves[moves.size()-1];
+                                //qDebug() << m.from << m.to << m.promotion_piece;
+                            }
+                        } else {
+                            stop = true;
+                            if(this->piece_color(idx) != turn) {
+                                if(to_square == idx) {
+                                    moves.append(Move(from,idx));
+                                }
+                            }
+                        }
+                        idx = idx + DIR_TABLE[lookup_idx][j];
+                    } else {
+                        stop = true;
+                    }
+                }
+            }
+        }
+    }
+    if(piece_type == BISHOP) {
+        for(int i=0;i<10;i++) {
+            int from = this->piece_list[turn][BISHOP][i];
+            if(from == EMPTY) {
+                break;
+            }
+            int lookup_idx = IDX_BISHOP;
+            for(int j=1;j<=DIR_TABLE[lookup_idx][0] ;j++) {
+                uint8_t idx = from + DIR_TABLE[lookup_idx][j];
+                bool stop = false;
+                while(!stop) {
+                    if(!this->is_offside(idx)) {
+                        if(this->is_empty(idx)) {
+                            if(to_square == idx) {
+                                moves.append(Move(from,idx));
+                                Move m = moves[moves.size()-1];
+                                //qDebug() << m.from << m.to << m.promotion_piece;
+                            }
+                        } else {
+                            stop = true;
+                            if(this->piece_color(idx) != turn) {
+                                if(to_square == idx) {
+                                    moves.append(Move(from,idx));
+                                }
+                            }
+                        }
+                        idx = idx + DIR_TABLE[lookup_idx][j];
+                    } else {
+                        stop = true;
+                    }
+                }
+            }
+        }
+    }
+    if(piece_type == QUEEN) {
+        for(int i=0;i<10;i++) {
+            int from = this->piece_list[turn][QUEEN][i];
+            if(from == EMPTY) {
+                break;
+            }
+            int lookup_idx = IDX_QUEEN;
+            for(int j=1;j<=DIR_TABLE[lookup_idx][0] ;j++) {
+                uint8_t idx = from + DIR_TABLE[lookup_idx][j];
+                bool stop = false;
+                while(!stop) {
+                    if(!this->is_offside(idx)) {
+                        if(this->is_empty(idx)) {
+                            if(to_square == idx) {
+                                moves.append(Move(from,idx));
+                                Move m = moves[moves.size()-1];
+                                //qDebug() << m.from << m.to << m.promotion_piece;
+                            }
+                        } else {
+                            stop = true;
+                            if(this->piece_color(idx) != turn) {
+                                if(to_square == idx) {
+                                    moves.append(Move(from,idx));
+                                }
+                            }
+                        }
+                        idx = idx + DIR_TABLE[lookup_idx][j];
+                    } else {
+                        stop = true;
+                    }
+                }
+            }
+        }
+    }
+    if(with_castles) {
+        if(turn == WHITE) {
+            // check for castling
+            // white kingside
+            if(!this->is_empty(E1) && this->can_castle_wking() &&
+                    this->piece_color(E1) == WHITE && this->piece_color(H1) == WHITE
+                    && this->piece_type(E1) == KING && this->piece_type(H1) == ROOK
+                    && this->is_empty(F1) && this->is_empty(G1)) {
+                moves.append(Move(E1,G1));
+            }
+            // white queenside
+            if(!this->is_empty(E1) && this->can_castle_wqueen() &&
+                    this->piece_color(E1) == WHITE && this->piece_color(A1) == WHITE
+                    && this->piece_type(E1) == KING && this->piece_type(A1) == ROOK
+                    && this->is_empty(D1) && this->is_empty(C1) && this->is_empty(B1)) {
+                moves.append(Move(E1,C1));
+            }
+        }
+        if(turn == BLACK) {
+            // black kingside
+            if(!this->is_empty(E8) && this->can_castle_bking() &&
+                    this->piece_color(E8) == BLACK && this->piece_color(H8) == BLACK
+                    && this->piece_type(E8) == KING && this->piece_type(H8) == ROOK
+                    && this->is_empty(F8) && this->is_empty(G8)) {
+                moves.append(Move(E8,G8));
+            }
+            // black queenside
+            if(!this->is_empty(E8) && this->can_castle_bqueen() &&
+                    this->piece_color(E8) == BLACK && this->piece_color(A8) == BLACK
+                    && this->piece_type(E8) == KING && this->piece_type(A8) == ROOK
+                    && this->is_empty(D8) && this->is_empty(C8) && this->is_empty(B8)) {
+                moves.append(Move(E8,C8));
+            }
+        }
+    }
+    return moves;
+}
+
+
+
+
+
+/*
+
 // calling with from_square = 0 means all possible moves
 // will find all pseudo legal move for supplied player (turn must be
 // either WHITE or BLACK)
@@ -1494,6 +1788,7 @@ QVector<Move> Board::pseudo_legal_moves_from_pt(int from_square, uint8_t to_squa
     }
     return moves;
 }
+*/
 
 // no castle moves
 QVector<Move> Board::pseudo_legal_moves_san_parse(uint8_t to_square, uint8_t piece_type) {
@@ -1709,6 +2004,34 @@ bool Board::is_white_at(uint8_t idx) {
     }
 }
 
+void Board::remove_from_piece_list(bool color, uint8_t piece_type, uint8_t idx) {
+
+    int j = -1;
+    for(int i=0;i<10;i++) {
+        if(this->piece_list[color][piece_type][i] == idx) {
+            j = i;
+            break;
+        }
+    }
+    if(j>=0) {
+        // move all other one step further
+        for(int i=j+1;i<10;i++) {
+            this->piece_list[color][piece_type][i-1] = this->piece_list[color][piece_type][i];
+        }
+        // empty last one in list
+        this->piece_list[color][piece_type][9] = EMPTY;
+    }
+}
+
+void Board::add_to_piece_list(bool color, uint8_t piece_type, uint8_t idx) {
+
+    for(int i=0;i<10;i++) {
+        if(this->piece_list[color][piece_type][i] == EMPTY) {
+            this->piece_list[color][piece_type][i] = idx;
+            break;
+        }
+    }
+}
 
 // doesn't check legality
 void Board::apply(const Move &m) {
@@ -1734,10 +2057,19 @@ void Board::apply(const Move &m) {
     for(int i=0;i<120;i++) {
         this->old_board[i] = this->board[i];
     }
+
     uint8_t old_piece_type = this->piece_type(m.from);
     bool color = this->piece_color(m.from);
+    // if target field is not empty, remove from piece list
+    // this must be of oppsite color than the currently moving piece
+    if(this->board[m.to] != EMPTY) {
+        uint8_t current_target_piece = this->piece_type(m.to);
+        this->remove_from_piece_list(!color, current_target_piece, m.to);
+    }
+    // also remove the currently moving piece from the list
+    this->remove_from_piece_list(color, old_piece_type, m.from);
     // increase halfmove clock only if no capture or pawn advance
-    // happended
+    // happend
     this->prev_halfmove_clock = this->halfmove_clock;
     if(old_piece_type == PAWN || this->board[m.to] != EMPTY) {
         this->halfmove_clock = 0;
@@ -1768,10 +2100,12 @@ void Board::apply(const Move &m) {
             if(color == WHITE && ((m.to-m.from == 9) || (m.to-m.from)==11)) {
                 // remove captured pawn
                 this->board[m.to-10] = 0x00;
+                this->remove_from_piece_list(BLACK, PAWN, m.to-10);
             }
             if(color == BLACK && ((m.from -m.to == 9) || (m.from - m.to)==11)) {
                 // remove captured pawn
                 this->board[m.to+10] = 0x00;
+                this->remove_from_piece_list(WHITE, PAWN, m.to+10);
             }
         }
     }
@@ -1780,15 +2114,20 @@ void Board::apply(const Move &m) {
     if(m.promotion_piece != EMPTY) {
         // true means black
         if(color == BLACK) {
-            // +128 sets 7th bit to true (means black)
+            // +128 sets 7th bit to true (means black)            
             this->board[m.to] = m.promotion_piece +128;
+            // add to piece list
+            this->add_to_piece_list(BLACK, m.promotion_piece, m.to);
         }
         else {
             this->board[m.to] = m.promotion_piece;
+            this->add_to_piece_list(WHITE, m.promotion_piece, m.to);
         }
     } else {
         // otherwise the target is the piece on the from field
         this->board[m.to] = this->board[m.from];
+        // add to piece list
+        this->add_to_piece_list(color, old_piece_type, m.to);
     }
     this->board[m.from] = EMPTY;
     // check if the move is castles, i.e. 0-0 or 0-0-0
@@ -1800,12 +2139,16 @@ void Board::apply(const Move &m) {
                 this->board[F1] = this->board[H1];
                 this->board[H1] = EMPTY;
                 this->set_castle_wking(false);
+                this->remove_from_piece_list(WHITE, ROOK, H1);
+                this->add_to_piece_list(WHITE, ROOK, F1);
             }
             // white queenside
             if(m.from == E1 && m.to == C1) {
                 this->board[D1] = this->board[A1];
                 this->board[A1] = EMPTY;
                 this->set_castle_wqueen(false);
+                this->remove_from_piece_list(WHITE, ROOK, A1);
+                this->add_to_piece_list(WHITE, ROOK, D1);
             } }
         else if(color==BLACK) {
             // black kingside
@@ -1813,12 +2156,16 @@ void Board::apply(const Move &m) {
                 this->board[F8] = this->board[H8];
                 this->board[H8] = EMPTY;
                 this->set_castle_bking(false);
+                this->remove_from_piece_list(BLACK, ROOK, H8);
+                this->add_to_piece_list(BLACK, ROOK, F8);
             }
             // black queenside
             if(m.from == E8 && m.to == C8) {
                 this->board[D8] = this->board[A8];
                 this->board[A8] = EMPTY;
                 this->set_castle_bqueen(false);
+                this->remove_from_piece_list(BLACK, ROOK, A8);
+                this->add_to_piece_list(BLACK, ROOK, D8);
             }
         }
     }
@@ -1886,6 +2233,8 @@ void Board::apply(const Move &m) {
     // also update transposition table for 3fold repition detection
     //this->update_transposition_table();
     }
+    // improve later, calling re-initialization is unnecc. slow
+    //this->init_piece_list();
 }
 
 void Board::undo() {
@@ -1915,6 +2264,7 @@ void Board::undo() {
             }
         }
     }
+    this->init_piece_list();
 }
 
 // doesn't check legality
@@ -1955,6 +2305,12 @@ Board::Board(const Board &other) {
     for(int i=0;i<120;i++) {
         board[i] = other.board[i];
         old_board[i] = other.old_board[i];
+    }
+    for(int i=0;i<7;i++) {
+        for(int j=0;j<10;j++) {
+            this->piece_list[WHITE][i][j] = other.piece_list[WHITE][i][j];
+            this->piece_list[BLACK][i][j] = other.piece_list[BLACK][i][j];
+        }
     }
 }
 
@@ -2520,7 +2876,7 @@ Move Board::parse_san_fast(QString san) {
     } else {
         qDebug() << "todo: check if pseudo is legal";
         qDebug() << "input san: " << san;
-        Board b = Board(this);
+        Board b = Board(*this);
         std::cout << b << std::endl;
         for(int i=0;i<lgl_piece.count();i++) {
             qDebug() << lgl_piece.at(i).uci_string;
