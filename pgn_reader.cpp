@@ -1411,10 +1411,10 @@ bool PgnReader::parsePieceMove(uint8_t piece_type, const QString &line, int &idx
                return false;
            }
        } else {
-            if(this->isRow(line.at(idx+1))) {
+            if(idx+1 < line.size() && this->isRow(line.at(idx+1))) {
                 // we have a move with disamb, e.g. Q4xe5 or Q4e5
                 int from_row = line.at(idx+1).digitValue() - 1;
-                if(idx+1 < line.size() && line.at(idx+1) == QChar::fromLatin1('x')) {
+                if(line.at(idx+1) == QChar::fromLatin1('x')) {
                     idx+=1;
                 }
                 if(idx+3 < line.size() && this->isCol(line.at(idx+2)) && this->isRow(line.at(idx+3))) {
@@ -1492,7 +1492,7 @@ int PgnReader::getNetxtToken(QString &line, int &idx) {
                             return TKN_RES_WHITE_WIN;
                         }
                     }
-                    if(line.at(idx+2) == QChar::fromLatin1(('/'))) {
+                    if(idx+2 < lineSize && line.at(idx+2) == QChar::fromLatin1(('/'))) {
                         if(idx+6 < lineSize && line.mid(idx,idx+6) == QString::fromLatin1("1/2-1/2")) {
                             return TKN_RES_DRAW;
                         }
