@@ -1177,19 +1177,19 @@ void PgnReader::addMove(GameNode *&node, Move &m) {
 
 bool PgnReader::parsePawnMove(QString &line, int &idx, GameNode *&node) {
 
-    int col = Board::alpha_to_pos(line[idx]);
+    int col = Board::alpha_to_pos(line.at(idx));
     Board* board = node->getBoard();
     if(idx+1 < line.size()) {
-        if(line[idx+1] == QChar::fromLatin1('x')) {
+        if(line.at(idx+1) == QChar::fromLatin1('x')) {
             // after x, next one must be letter denoting column
             // and then digit representing row, like exd4 (white)
             // then parse d, 4, and check wether there is a pawn
             // on e(4-1) = e3
             //qDebug() << "takes";
             if(idx+3 < line.size()) {
-                if(this->isCol(line[idx+2]) && this->isRow(line[idx+3])) {
-                    int col_to = Board::alpha_to_pos(line[idx+2]);
-                    int row_to = line[idx+3].digitValue() - 1;
+                if(this->isCol(line.at(idx+2)) && this->isRow(line.at(idx+3))) {
+                    int col_to = Board::alpha_to_pos(line.at(idx+2));
+                    int row_to = line.at(idx+3).digitValue() - 1;
                     int row_from = -1;
 
                     if(board->turn == WHITE && row_to - 1 >= 0 &&
@@ -1201,12 +1201,12 @@ bool PgnReader::parsePawnMove(QString &line, int &idx, GameNode *&node) {
                     }
                     if(row_from >= 0 && row_from <= 7) {
                         // check wether this is a promotion, i.e. exd8=Q
-                        if(idx+5 < line.size() && line[idx+4] == QChar::fromLatin1('=') &&
-                                (line[idx+5] == QChar::fromLatin1('R') ||
-                                 line[idx+5] == QChar::fromLatin1('B') ||
-                                 line[idx+5] == QChar::fromLatin1('N') ||
-                                 line[idx+5] == QChar::fromLatin1('Q'))) {                           
-                            Move m = Move(col, row_from, col_to, row_to, line[idx+5]);
+                        if(idx+5 < line.size() && line.at(idx+4) == QChar::fromLatin1('=') &&
+                                (line.at(idx+5) == QChar::fromLatin1('R') ||
+                                 line.at(idx+5) == QChar::fromLatin1('B') ||
+                                 line.at(idx+5) == QChar::fromLatin1('N') ||
+                                 line.at(idx+5) == QChar::fromLatin1('Q'))) {
+                            Move m = Move(col, row_from, col_to, row_to, line.at(idx+5));
                             this->addMove(node, m);
                             idx += 6;
                             return true;
@@ -1229,8 +1229,8 @@ bool PgnReader::parsePawnMove(QString &line, int &idx, GameNode *&node) {
                 return false;
             }
         } else { // only other case: must be a number
-            if(this->isRow(line[idx+1])) {
-                int row = line[idx+1].digitValue() - 1;
+            if(this->isRow(line.at(idx+1))) {
+                int row = line.at(idx+1).digitValue() - 1;
                 int from_row = -1;
                 if(board->turn == WHITE) {
                     for(int row_i = row - 1;row_i>= 1;row_i--) {
@@ -1249,12 +1249,12 @@ bool PgnReader::parsePawnMove(QString &line, int &idx, GameNode *&node) {
                 }
                 if(from_row >= 0) { // means we found a from square
                     // check wether this is a promotion
-                    if(idx+3 < line.size() && line[idx+2] == QChar::fromLatin1('=') &&
-                            (line[idx+3] == QChar::fromLatin1('R') ||
-                             line[idx+3] == QChar::fromLatin1('B') ||
-                             line[idx+3] == QChar::fromLatin1('N') ||
-                             line[idx+3] == QChar::fromLatin1('Q'))) {
-                        Move m = Move(col, from_row, col, row, line[idx+3]);
+                    if(idx+3 < line.size() && line.at(idx+2) == QChar::fromLatin1('=') &&
+                            (line.at(idx+3) == QChar::fromLatin1('R') ||
+                             line.at(idx+3) == QChar::fromLatin1('B') ||
+                             line.at(idx+3) == QChar::fromLatin1('N') ||
+                             line.at(idx+3) == QChar::fromLatin1('Q'))) {
+                        Move m = Move(col, from_row, col, row, line.at(idx+3));
                         this->addMove(node, m);
                         idx += 4;
                         return true;
@@ -1290,13 +1290,14 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
 
     QVector<Move> pseudos = board->pseudo_legal_moves_from_pt(ANY_SQUARE, to_internal, piece_type, GEN_NO_CASTLE_MOVES, board->turn);
     if(pseudos.size() == 1) {
-        Move m = pseudos[0];
+        Move m = pseudos.at(0);
         this->addMove(node,m);
         return true;
     } else {
-        QVector<Move> legals = board->legal_moves(to_internal, piece_type);
+        //QVector<Move> legals = board->legal_moves(to_internal, piece_type);
+        QVector<Move> legals = board->legals_from_pseudos(pseudos);
         if(legals.size() == 1) {
-            Move m = legals[0];
+            Move m = legals.at(0);
             this->addMove(node,m);
             return true;
         } else {
@@ -1314,19 +1315,20 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
     QVector<Move> pseudos = board->pseudo_legal_moves_from_pt(ANY_SQUARE, to_internal, piece_type, GEN_NO_CASTLE_MOVES, board->turn);
     QVector<Move> filter;
     for(int i=0;i<pseudos.size();i++) {
-        Move m = pseudos[i];
+        Move m = pseudos.at(i);
         if((m.from % 10) - 1 == from_col) {
             filter.append(m);
         }
     }
     if(filter.size() == 1) {
-        Move m = filter[0];
+        Move m = filter.at(0);
         this->addMove(node,m);
         return true;
     } else {
-        QVector<Move> legals = board->legal_moves(to_internal, piece_type);
+        //QVector<Move> legals = board->legal_moves(to_internal, piece_type);
+        QVector<Move> legals = board->legals_from_pseudos(pseudos);
         if(legals.size() == 1) {
-            Move m = legals[0];
+            Move m = legals.at(0);
             this->addMove(node,m);
             return true;
         } else {
@@ -1342,19 +1344,20 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
     QVector<Move> pseudos = board->pseudo_legal_moves_from_pt(ANY_SQUARE, to_internal, piece_type, GEN_NO_CASTLE_MOVES, board->turn);
     QVector<Move> filter;
     for(int i=0;i<pseudos.size();i++) {
-        Move m = pseudos[i];
+        Move m = pseudos.at(i);
         if((m.from / 10) - 2 == from_row) {
             filter.append(m);
         }
     }
     if(filter.size() == 1) {
-        Move m = filter[0];
+        Move m = filter.at(0);
         this->addMove(node,m);
         return true;
     } else {
-        QVector<Move> legals = board->legal_moves(to_internal, piece_type);
+        //QVector<Move> legals = board->legal_moves(to_internal, piece_type);
+        QVector<Move> legals = board->legals_from_pseudos(pseudos);
         if(legals.size() == 1) {
-            Move m = legals[0];
+            Move m = legals.at(0);
             this->addMove(node,m);
             return true;
         } else {
@@ -1369,31 +1372,31 @@ bool PgnReader::parsePieceMove(uint8_t piece_type, const QString &line, int &idx
     // we have a piece move like "Qxe4" where index points to Q
     // First move idx after piece symbol, i.e. to ">x<e4"
     idx+=1;
-    if(idx < line.size() && line[idx] == QChar::fromLatin1('x')) {
+    if(idx < line.size() && line.at(idx) == QChar::fromLatin1('x')) {
         idx+=1;
     }
     if(idx < line.size()) {
-        if(this->isCol(line[idx])) {
+        if(this->isCol(line.at(idx))) {
             //Qe? or Qxe?, now either digit must follow (Qe4 / Qxe4)
             //or we have a disambiguition (Qee5)
             if(idx+1 < line.size()) {
-                if(this->isRow(line[idx+1])) {
-                    int to_col = Board::alpha_to_pos(line[idx]);
-                    int to_row = line[idx+1].digitValue() - 1;
+                if(this->isRow(line.at(idx+1))) {
+                    int to_col = Board::alpha_to_pos(line.at(idx));
+                    int to_row = line.at(idx+1).digitValue() - 1;
                     idx+=2;
                     // standard move, i.e. Qe4
                     return createPieceMove(piece_type, to_col, to_row, node);
                 } else {
-                    if(this->isCol(line[idx+1])) {
+                    if(this->isCol(line.at(idx+1))) {
                         // we have a disambiguition, that should resolved by
                         // the column denoted in the san, here in @line[idx]
-                        int to_col = Board::alpha_to_pos(line[idx+1]);
-                        if(idx+2 < line.size() && this->isRow(line[idx+2])) {
-                            int to_row = line[idx+2].digitValue() - 1;
+                        int to_col = Board::alpha_to_pos(line.at(idx+1));
+                        if(idx+2 < line.size() && this->isRow(line.at(idx+2))) {
+                            int to_row = line.at(idx+2).digitValue() - 1;
                             // move w/ disambig on col, i.e. Qee4
                             // provide line[idx] to cratePieceMove to resolve disamb.
                             idx+=3;
-                            return createPieceMove(piece_type, to_col, to_row, node, line[idx-3]);
+                            return createPieceMove(piece_type, to_col, to_row, node, line.at(idx-3));
                         } else {
                             idx+=4;
                             return false;
@@ -1408,15 +1411,15 @@ bool PgnReader::parsePieceMove(uint8_t piece_type, const QString &line, int &idx
                return false;
            }
        } else {
-            if(this->isRow(line[idx+1])) {
+            if(this->isRow(line.at(idx+1))) {
                 // we have a move with disamb, e.g. Q4xe5 or Q4e5
-                int from_row = line[idx+1].digitValue() - 1;
-                if(idx+1 < line.size() && line[idx+1] == QChar::fromLatin1('x')) {
+                int from_row = line.at(idx+1).digitValue() - 1;
+                if(idx+1 < line.size() && line.at(idx+1) == QChar::fromLatin1('x')) {
                     idx+=1;
                 }
-                if(idx+3 < line.size() && this->isCol(line[idx+2]) && this->isRow(line[idx+3])) {
-                    int to_col = Board::alpha_to_pos(line[idx+2]);
-                    int to_row = line[idx+3].digitValue() - 1;
+                if(idx+3 < line.size() && this->isCol(line.at(idx+2)) && this->isRow(line.at(idx+3))) {
+                    int to_col = Board::alpha_to_pos(line.at(idx+2));
+                    int to_row = line.at(idx+3).digitValue() - 1;
                     // parse the ambig move
                     idx+=4;
                     return createPieceMove(piece_type, to_col, to_row, node, from_row);
@@ -1476,7 +1479,7 @@ int PgnReader::getNetxtToken(QString &line, int &idx) {
     //qDebug() << "get next token, @ " << line[idx];
     int lineSize = line.size();
     while(idx < lineSize) {
-        QChar ci = line[idx];
+        QChar ci = line.at(idx);
         if(ci == QChar::fromLatin1(' ') || ci == QChar::fromLatin1('.')) {
             idx += 1;
             continue;
@@ -1484,12 +1487,12 @@ int PgnReader::getNetxtToken(QString &line, int &idx) {
         if(ci >= QChar::fromLatin1('0') && ci <= QChar::fromLatin1('9')) {
             if(ci == QChar::fromLatin1('1')) {
                 if(idx+1 < lineSize) {
-                    if(line[idx+1] == QChar::fromLatin1('-')) {
-                        if(idx+2 < lineSize && line[idx+2] == QChar::fromLatin1('0')) {
+                    if(line.at(idx+1) == QChar::fromLatin1('-')) {
+                        if(idx+2 < lineSize && line.at(idx+2) == QChar::fromLatin1('0')) {
                             return TKN_RES_WHITE_WIN;
                         }
                     }
-                    if(line[idx+2] == QChar::fromLatin1(('/'))) {
+                    if(line.at(idx+2) == QChar::fromLatin1(('/'))) {
                         if(idx+6 < lineSize && line.mid(idx,idx+6) == QString::fromLatin1("1/2-1/2")) {
                             return TKN_RES_DRAW;
                         }
@@ -1498,11 +1501,11 @@ int PgnReader::getNetxtToken(QString &line, int &idx) {
             }
             // irregular castling like 0-0 or 0-0-0
             if(ci == QChar::fromLatin1('0')) {
-                if(idx+1 < lineSize && line[idx+1] == QChar::fromLatin1('-')) {
-                    if(idx+2 < lineSize && line[idx+2] == QChar::fromLatin1('1')) {
+                if(idx+1 < lineSize && line.at(idx+1) == QChar::fromLatin1('-')) {
+                    if(idx+2 < lineSize && line.at(idx+2) == QChar::fromLatin1('1')) {
                         return TKN_RES_BLACK_WIN;
                     } else {
-                        if(idx+2 < lineSize && line[idx+2] == QChar::fromLatin1('0')) {
+                        if(idx+2 < lineSize && line.at(idx+2) == QChar::fromLatin1('0')) {
                             return TKN_CASTLE;
                         }
                     }

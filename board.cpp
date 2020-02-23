@@ -1000,6 +1000,17 @@ bool Board::is_legal_move(const Move &m) {
     return false;
 }
 
+QVector<Move> Board::legals_from_pseudos(QVector<Move> &pseudos) {
+    QVector<Move> legals;
+    for(int i=0;i<pseudos.size();i++) {
+        Move mi = pseudos.at(i);
+        if(pseudo_is_legal_move(mi)) {
+            legals.append(mi);
+        }
+    }
+    return legals;
+}
+
 bool Board::pseudo_is_legal_move(const Move &m) {
 
     // a pseudo legal move is a legal move if

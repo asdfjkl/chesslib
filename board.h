@@ -361,6 +361,8 @@ public:
      */
     QVector<Move> legal_moves_from(int from_square);
 
+    QVector<Move> legals_from_pseudos(QVector<Move> &pseudos);
+
     /**
      * @brief pseudo_is_legal_move checks whether supplied pseudo legal move is legal
      *              in current position. Does NOT check whether supplied move is pseudo legal!!!
