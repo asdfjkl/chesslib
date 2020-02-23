@@ -16,7 +16,8 @@ int main(int argc, char *argv[])
     qDebug() << "starting up";
     //return a.exec();
     //QFile file("C:\\Users\\user\\MyFiles\\workspace\\test_databases\\kingbase_test.pgn");
-    QFile file("C:\\Users\\user\\MyFiles\\workspace\\demo.pgn");
+    //QFile file("C:\\Users\\user\\MyFiles\\workspace\\demo.pgn");
+    QFile file("/home/user/code/test_db/demo.pgn");
     //QFile file("/home/gast/tmp/demo.pgn");
 
 
@@ -46,7 +47,8 @@ int main(int argc, char *argv[])
     std::cout << pgnPrinter.printGame(*g).join("\n").toStdString() << std::endl;
 
     //QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\KingBaseLite2016-03-E60-E99.pgn";
-    QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\millionbase-2.22.pgn";
+    QString kingbase = QString("/home/user/code/test_db/KingBaseLite2016-03-E60-E99.pgn");
+    //QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\millionbase-2.22.pgn";
     QVector<qint64> offsets = pgnReader.scanPgn(kingbase, true);
 
     const char* encoding = pgnReader.detect_encoding(kingbase);
@@ -67,11 +69,11 @@ int main(int argc, char *argv[])
 //qDebug() << chess::NodePool::freeList.size();
     // new parser
     start = std::chrono::steady_clock::now();
-    for(int i=0;i<2190000;i++) {
-    //for(int i=0;i<offsets.size();i++) {
-        if(i%50000 == 0) {
-            qDebug() << i;
-        }
+    //for(int i=0;i<2190000;i++) {
+    for(int i=0;i<offsets.size();i++) {
+        //if(i%50000 == 0) {
+        //    qDebug() << i;
+        //}
         //qDebug() << "at game i";
         //qDebug() << chess::NodePool::freeList.size();
         in1.seek(offsets[i]);
