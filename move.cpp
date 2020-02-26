@@ -38,7 +38,7 @@ Move::Move(uint8_t from, uint8_t to) {
     this->from = from;
     this->to = to;
     this->promotion_piece = 0;
-    this->uci_string = QString(col_from) + row_from + col_to + row_to;
+    //this->uci_string = QString(col_from) + row_from + col_to + row_to;
     this->is_null = false;
 }
 
@@ -56,7 +56,7 @@ Move::Move(int from_col, int from_row, int to_col, int to_row) {
     QChar c_row_to = QChar::fromLatin1(to_row + 49);
 
     this->promotion_piece = 0;
-    this->uci_string = QString(c_col_from) + c_row_from + c_col_to + c_row_to;
+    //this->uci_string = QString(c_col_from) + c_row_from + c_col_to + c_row_to;
     this->is_null = false;
 }
 
@@ -67,7 +67,7 @@ Move::Move() {
     this->from = 0x00;
     this->to = 0x00;
     this->promotion_piece = 0;
-    this->uci_string = "0000";
+    //this->uci_string = "0000";
     this->is_null = true;
 }
 
@@ -94,9 +94,9 @@ Move::Move(uint8_t from, uint8_t to, uint8_t promotion_piece) {
     this->to = to;
     this->promotion_piece = promotion_piece;
     if(prom_piece == QChar(' ')) {
-        this->uci_string = QString(col_from) + row_from + col_to + row_to;
+        //this->uci_string = QString(col_from) + row_from + col_to + row_to;
     } else {
-        this->uci_string = QString(col_from) + row_from + col_to + row_to + prom_piece;
+        //this->uci_string = QString(col_from) + row_from + col_to + row_to + prom_piece;
     }
     this->is_null = false;
 }
@@ -124,13 +124,13 @@ Move::Move(int from_col, int from_row, int to_col, int to_row, QChar cProm) {
     } else if (cProm == QChar::fromLatin1('Q')) {
         this->promotion_piece = QUEEN;
     }
-    this->uci_string = QString(c_col_from) + c_row_from + c_col_to + c_row_to + cProm;
+    //this->uci_string = QString(c_col_from) + c_row_from + c_col_to + c_row_to + cProm;
     this->is_null = false;
 }
 
 Move::Move(QString uci) {
     assert((uci.size()==4) || (uci.size()==5));
-    this->uci_string = uci;
+    //this->uci_string = uci;
     QString up = uci.toUpper();
     uint8_t from_col = (uint8_t) this->alpha_to_pos(up.at(0));
     // -49 for ascii(1) -> int 0, *10 + 20 is to get board coord
@@ -206,7 +206,7 @@ Move::Move(const Move& m) {
     this->to = m.to;
     this->promotion_piece = m.promotion_piece;
     this->is_null = m.is_null;
-    this->uci_string = this->uci(); // QString::fromUtf16(m.uci_string.utf16());
+    //this->uci_string = this->uci(); // QString::fromUtf16(m.uci_string.utf16());
 }
 
 
@@ -257,7 +257,8 @@ bool Move::operator!=(const Move &other) const {
  */
 std::ostream& operator<<(std::ostream &strm, const Move &m) {
 
-    return strm << m.uci_string.toStdString();
+    //return strm << m.uci_string.toStdString();
+    return strm << QString("foo").toStdString();
 
 }
 

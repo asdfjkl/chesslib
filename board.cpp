@@ -2711,7 +2711,7 @@ Move Board::parse_san(QString san) {
             m.from = mi.from;
             m.to = mi.to;
             m.promotion_piece = mi.promotion_piece;
-            m.uci_string = mi.uci_string;
+            //m.uci_string = mi.uci_string;
         }
     }
     return m;
@@ -2889,9 +2889,9 @@ Move Board::parse_san_fast(QString san) {
         qDebug() << "input san: " << san;
         Board b = Board(*this);
         std::cout << b << std::endl;
-        for(int i=0;i<lgl_piece.count();i++) {
-            qDebug() << lgl_piece.at(i).uci_string;
-        }
+        //for(int i=0;i<lgl_piece.count();i++) {
+        //    qDebug() << lgl_piece.at(i).uci_string;
+        //}
         //std::cout << *this << std::endl;
         //std::cout << +this->fullmove_number << std::endl;
         throw std::invalid_argument("invalid san / ambiguous: "+san.toStdString() + " " + QString::number(piece_type).toStdString() + " "+QString::number(target).toStdString());

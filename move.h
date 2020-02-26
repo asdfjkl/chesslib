@@ -50,7 +50,7 @@ public:
     uint8_t from;
     uint8_t to;
     uint8_t promotion_piece;
-    QString uci_string;
+    //QString uci_string;
     bool is_null;
 
     /**
