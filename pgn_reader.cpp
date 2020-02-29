@@ -936,7 +936,9 @@ QVector<qint64> PgnReader::scanPgn(QString &filename, bool isLatin1) {
                     game_pos = last_pos;
                 }
                 last_pos = file.pos();
-                byteLine = file.readLine();
+                //while(line.startsWith("[")) {
+                //    byteLine = file.readLine();
+                //}
                 continue;
             //}
         }
@@ -961,6 +963,8 @@ QVector<qint64> PgnReader::scanPgn(QString &filename, bool isLatin1) {
 
     return offsets;
 }
+
+
 
 chess::Game* PgnReader::readGameFromPgnAt(QString &filename, qint64 offset, bool isUtf8) {
     return nullptr;

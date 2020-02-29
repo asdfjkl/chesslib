@@ -47,7 +47,18 @@ int main(int argc, char *argv[])
 
     //QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\KingBaseLite2016-03-E60-E99.pgn";
     QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\millionbase-2.22.pgn";
+    //QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\demo_two_games.pgn";
+
+
+    start = std::chrono::steady_clock::now();
     QVector<qint64> offsets = pgnReader.scanPgn(kingbase, true);
+    for(int i=0;i<10;i++) {
+        qDebug() << "offset: " << offsets.at(i);
+    }
+    stop = std::chrono::steady_clock::now();
+    diff = (stop - start);
+    i_millis = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
+    std::cout << "Scanning Kingbase took :  " << i_millis.count() <<  "ms" << std::endl;
 
     const char* encoding = pgnReader.detect_encoding(kingbase);
 
