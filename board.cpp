@@ -321,7 +321,7 @@ Board::Board() {
     this->undo_available = false;
     this->last_was_null = false;
     this->prev_halfmove_clock = 0;
-    this->transpositionTable = QMap<quint64, int>();
+    //this->transpositionTable = QMap<quint64, int>();
     this->update_transposition_table();
 }
 
@@ -390,7 +390,7 @@ Board::Board(bool initial_position) {
     this->undo_available = false;
     this->last_was_null = false;
     this->prev_halfmove_clock = 0;
-    this->transpositionTable = QMap<quint64, int>();
+    //this->transpositionTable = QMap<quint64, int>();
     this->update_transposition_table();
 }
 
@@ -725,7 +725,7 @@ Board::Board(const QString &fen_string) {
         throw std::invalid_argument("board position from supplied fen is inconsistent");
     }
     this->init_piece_list();
-    this->transpositionTable = QMap<quint64, int>();
+    //this->transpositionTable = QMap<quint64, int>();
     this->update_transposition_table();
 }
 
@@ -2312,7 +2312,7 @@ Board::Board(const Board &other) {
     undo_available = other.undo_available;
     last_was_null = other.last_was_null;
     prev_halfmove_clock = other.prev_halfmove_clock;
-    transpositionTable = QMap<quint64, int>(other.transpositionTable);
+    //transpositionTable = QMap<quint64, int>(other.transpositionTable);
     for(int i=0;i<120;i++) {
         board[i] = other.board[i];
         old_board[i] = other.old_board[i];
@@ -2348,12 +2348,14 @@ bool Board::is_stalemate() {
 
 bool Board::is_threefold_repetition() {
     quint64 current_zobrist = this->zobrist();
+    /*
     if(this->transpositionTable.contains(current_zobrist)) {
         int cnt = this->transpositionTable.value(current_zobrist);
         return cnt >= 3;
     } else {
         return false;
-    }
+    }*/
+    return true;
 }
 
 bool Board::is_checkmate() {
@@ -3240,12 +3242,13 @@ int Board::zobrist_piece_type(uint8_t piece) {
 
 void Board::update_transposition_table() {
     quint64 current_zobrist = this->zobrist();
+    /*
     if(this->transpositionTable.contains(current_zobrist)) {
         int cnt = this->transpositionTable.value(current_zobrist);
         this->transpositionTable.insert(current_zobrist, cnt+1);
     } else {
         this->transpositionTable.insert(current_zobrist, 1);
-    }
+    }*/
 }
 
 quint64 Board::zobrist() {

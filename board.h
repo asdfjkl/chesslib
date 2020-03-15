@@ -703,7 +703,7 @@ private:
 
     void init_piece_list();
 
-    QMap<quint64, int> transpositionTable;
+    //QMap<quint64, int> transpositionTable;
 
     int zobrist_piece_type(uint8_t piece);
 

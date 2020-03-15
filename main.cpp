@@ -30,12 +30,14 @@ int main(int argc, char *argv[])
 
     chess::PgnReader pgnReader;
 
+    qDebug() << "start reading single game";
     auto start = std::chrono::steady_clock::now();
 
     chess::Game *g = new chess::Game();
     pgnReader.nReadGame(in,g);
     //chess::Game *g = nullptr;
 
+    qDebug() << "end reading single game";
     auto stop = std::chrono::steady_clock::now();
     std::chrono::duration<double> diff = (stop - start);
     std::chrono::milliseconds i_millis = std::chrono::duration_cast<std::chrono::milliseconds>(diff);

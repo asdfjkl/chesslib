@@ -23,6 +23,7 @@
 
 #include <QTextStream>
 #include <memory>
+#include <QStack>
 #include "game.h"
 
 namespace chess {
@@ -225,6 +226,8 @@ public:
 
 
 private:
+
+    QStack<GameNode*> m_game_stack;
 
     inline void addMove(GameNode *&node, Move &m);
     // these functions expect a qstring and an offset

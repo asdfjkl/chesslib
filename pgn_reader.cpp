@@ -1567,6 +1567,8 @@ int PgnReader::getNetxtToken(QString &line, int &idx) {
 
 int PgnReader::nReadGame(QTextStream& in, chess::Game* g) {
 
+    m_game_stack.clear();
+
     //chess::Game* g = new Game();
     QString starting_fen = QString("");
 
@@ -1644,80 +1646,114 @@ int PgnReader::nReadGame(QTextStream& in, chess::Game* g) {
             firstLine = false;
         }
         if(lineReadOk) {
+            if(line.startsWith(QString::fromLatin1("%"))) {
+                continue;
+            }
             int idx = 0;
             while(idx < line.size()) {
                 int tkn = getNetxtToken(line,idx);
-                if(tkn == TKN_EOL) {  // eigentlich: token error!
-                    //qDebug() << "TKN EOL";
+                if(tkn == TKN_EOL) {
                     break;
                 }
                 if(tkn == TKN_RES_WHITE_WIN) {
-                    //qDebug() << "1-0";
-                    idx += 3;
+                    // 1-0
+                    g->setResult(RES_WHITE_WINS);
+                    idx += 4;
                 }
                 if(tkn == TKN_RES_BLACK_WIN) {
-                    idx += 1;
+                    // 0-1
+                    g->setResult(RES_BLACK_WINS);
+                    idx += 4;
                 }
                 if(tkn == TKN_RES_UNDEFINED) {
-                    idx += 1;
+                    // *
+                    g->setResult(RES_UNDEF);
+                    idx += 2;
+                }
+                if(tkn == TKN_RES_DRAW) {
+                    // 1/2-1/2
+                    g->setResult(RES_DRAW);
+                    idx += 8;
                 }
                 if(tkn == TKN_PAWN_MOVE) {
-                    //qDebug() << "TKN PAWN MOVE" << line.mid(idx,3);
                     parsePawnMove(line,idx,current);
                 }
                 if(tkn == TKN_CASTLE) {
                     parseCastleMove(line,idx,current);
                 }
                 if(tkn == TKN_ROOK_MOVE) {
-                    //qDebug() << "TKN CASTLE@" << line.mid(idx,3);
                     parsePieceMove(ROOK,line,idx,current);
                 }
                 if(tkn == TKN_KNIGHT_MOVE) {
-                    //qDebug() << "TKN KNIGHT@" << line.mid(idx,3);
                     parsePieceMove(KNIGHT,line,idx,current);
                 }
                 if(tkn == TKN_BISHOP_MOVE) {
-                    //qDebug() << "TKN BISHOP@" << line.mid(idx,3);
                     parsePieceMove(BISHOP,line,idx,current);
                 }
                 if(tkn == TKN_QUEEN_MOVE) {
-                    //qDebug() << "TKN QUEEN@" << line.mid(idx,3);
                     parsePieceMove(QUEEN,line,idx,current);
                 }
                 if(tkn == TKN_KING_MOVE) {
-                    //qDebug() << "TKN KING@" << line.mid(idx,3);
                     parsePieceMove(KING,line,idx,current);
                 }
                 if(tkn == TKN_CHECK) {
                     idx+=1;
                 }
-                /*
-                if(tkn == TKN_RES_WHITE_WIN) {
-
+                if(tkn == TKN_OPEN_VARIATION) {
+                    // put current node on stack, so that we don't forget it.
+                    m_game_stack.push(current);
+                    current = current->getParent();
                 }
-                TKN_OPEN_VARIATION
-                TKN_CLOSE_VARIATION
+                if(tkn == TKN_CLOSE_VARIATION) {
+                    // pop from stack. but always leave root
+                    if(m_game_stack.size() > 1) {
+                        current = m_game_stack.pop();
+                    }
+                }
+                if(tkn == TKN_OPEN_COMMENT) {
+                    QStringRef rest_of_line = line.midRef(idx+1, line.size()-(idx+1));
+                    int end = rest_of_line.indexOf(QString::fromLatin1("}"));
+                    if(end >= 0) {
+                        QString comment_line = line.mid(idx+1, end);
+                        current->setComment(comment_line);
+                        idx = idx+end+1;
+                    } else {
+                        // get comment over multiple lines
+                        QStringList comment_lines;
+                        QString comment_line = line.mid(idx+1, line.size() - (idx+1));
+                        comment_lines.append(comment_line);
+                        while(!line.isEmpty() && !line.contains(QString::fromLatin1("}"))) {
+                            comment_lines.append(line.trimmed());
+                            bool readOK = in.readLineInto(&line);
+                            if(!readOK) {
+                                break;
+                            }
+                        }
+                        int end_index = line.indexOf(QString::fromLatin1("}"));
+                        if(end_index >= 0) {
+                            QString comment_line = line.mid(0, end_index);
+                            comment_lines.append(comment_line);
+                            QString comment_joined = comment_lines.join(QString::fromLatin1("\n"));
+                            current->setComment(comment_joined);
+                            idx = end_index+1;
+                        } else {
+                            QString comment_joined = comment_lines.join(QString::fromLatin1("\n"));
+                            current->setComment(comment_joined);
+                            continue;
+                        }
+
+                    }
+                }
+                /*
                 TKN_NAG
-                TKN_OPEN_COMMENT
-                TKN_RES_UNDEFINED
                 */
             }
 
         } else {
             std::cerr << "error reading pgn file";
-            //return g;
             return 0;
         }
     }
-
-
-    /*
-    while (!in.atEnd()) {
-        if(!in.readLineInto(&line)) {
-            std::cerr << "error reading pgn" << std::endl;
-        }
-    }*/
-    //return;
     return 0;
 }
 
