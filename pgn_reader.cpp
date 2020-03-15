@@ -1477,6 +1477,62 @@ bool PgnReader::parseCastleMove(QString &line, int &idx, GameNode *&node) {
     return false;
 }
 
+void PgnReader::parseNAG(QString &line, int &idx, GameNode *node) {
+
+    int lineSize = line.size();
+
+    if(line[idx] == QChar::fromLatin1('$')) {
+        int idx_end = idx;
+        while(idx_end < lineSize && line[idx_end] != QChar::fromLatin1(' ')) {
+            idx_end ++;
+        }
+        if(idx_end+1 > idx) {
+            bool ok;
+            int nr = line.mid(idx+1, idx_end - (idx+1)).toInt(&ok, 10);
+            if(ok) {
+                node->addNag(nr);
+                idx = idx_end;
+            } else {
+                idx += 1;
+            }
+        } else {
+            idx += 1;
+        }
+        return;
+    }
+    if(line[idx+1] < lineSize && line.midRef(idx,2) == QString::fromLatin1("??")) {
+        node->addNag(NAG_BLUNDER);
+        idx += 3;
+        return;
+    }
+    if(line[idx+1] < lineSize && line.midRef(idx,2) == QString::fromLatin1("!!")) {
+        node->addNag(NAG_BRILLIANT_MOVE);
+        idx += 3;
+        return;
+    }
+    if(line[idx+1] < lineSize && line.midRef(idx,2) == QString::fromLatin1("!?")) {
+        node->addNag(NAG_SPECULATIVE_MOVE);
+        idx += 3;
+        return;
+    }
+    if(line[idx+1] < lineSize && line.midRef(idx,2) == QString::fromLatin1("?!")) {
+        node->addNag(NAG_DUBIOUS_MOVE);
+        idx += 3;
+        return;
+    }
+    if(line[idx] == QChar::fromLatin1('?')) {
+        node->addNag(NAG_MISTAKE);
+        idx += 2;
+        return;
+    }
+    if(line[idx] == QChar::fromLatin1('!')) {
+        node->addNag(NAG_GOOD_MOVE);
+        idx += 2;
+        return;
+    }
+}
+
+
 
 int PgnReader::getNetxtToken(QString &line, int &idx) {
 
@@ -1709,6 +1765,9 @@ int PgnReader::nReadGame(QTextStream& in, chess::Game* g) {
                     if(m_game_stack.size() > 1) {
                         current = m_game_stack.pop();
                     }
+                }
+                if(tkn == TKN_NAG) {
+                    parseNAG(line, idx, current);
                 }
                 if(tkn == TKN_OPEN_COMMENT) {
                     QStringRef rest_of_line = line.midRef(idx+1, line.size()-(idx+1));

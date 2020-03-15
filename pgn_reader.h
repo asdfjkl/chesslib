@@ -249,6 +249,8 @@ private:
 
     bool parseCastleMove(QString &line, int &idx, GameNode *&node);
 
+    void parseNAG(QString &line, int &idx, GameNode *node);
+
     // seeks to the next token in line, and sets
     // idx to the start of the new token
     // returns the token type, i.e. one of TKN_*
