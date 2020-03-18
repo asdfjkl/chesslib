@@ -90,6 +90,7 @@ const int TKN_RES_DRAW = 14;
 const int TKN_RES_UNDEFINED = 15;
 const int TKN_CHECK = 16;
 const int TKN_EOL = 17;
+const int TKN_NULL_MOVE = 18;
 
 struct HeaderOffset
 {

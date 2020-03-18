@@ -2056,6 +2056,9 @@ void Board::apply(const Move &m) {
         this->en_passent_target = 0;
         this->last_was_null = true;
         this->undo_available = true;
+        if(this->turn == WHITE) {
+            this->fullmove_number++;
+        }
     } else {
         this->last_was_null = false;
     this->turn = !this->turn;

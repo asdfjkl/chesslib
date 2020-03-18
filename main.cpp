@@ -46,6 +46,9 @@ int main(int argc, char *argv[])
 
     chess::PgnPrinter pgnPrinter;
     std::cout << pgnPrinter.printGame(*g).join("\n").toStdString() << std::endl;
+    pgnPrinter.writeGame(*g, "c:\\temp\\temp.pgn");
+
+    /*
 
     //QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\KingBaseLite2016-03-E60-E99.pgn";
     QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\millionbase-2.22.pgn";
@@ -100,21 +103,22 @@ int main(int argc, char *argv[])
     i_millis = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
 
     std::cout << "Reading Kingbase (new parser) :  " << i_millis.count() <<  "ms" << std::endl;
-
-    /*
-    // "classic" (jerry < 3.1.0) way of parsing with QRegexp and legal move generation
-    start = std::chrono::steady_clock::now();
-    for(int i=0;i<offsets.size();i++) {
-        chess::Game *g = pgnReader.readGameFromFile(kingbase, encoding, offsets[i]);
-        delete g;
-        //chess::NodePool::deleteNode(g->getRootNode());
-    }
-    stop = std::chrono::steady_clock::now();
-    diff = (stop - start);
-    i_millis = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
-
-    std::cout << "Reading Kingbase (classic)    :  " << i_millis.count() <<  "ms" << std::endl;
 */
+
+
+    // "classic" (jerry < 3.1.0) way of parsing with QRegexp and legal move generation
+    //start = std::chrono::steady_clock::now();
+    //for(int i=0;i<offsets.size();i++) {
+    //    chess::Game *g = pgnReader.readGameFromFile(kingbase, encoding, offsets[i]);
+    //    delete g;
+        //chess::NodePool::deleteNode(g->getRootNode());
+    //}
+    //stop = std::chrono::steady_clock::now();
+    //diff = (stop - start);
+    //i_millis = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
+
+    //std::cout << "Reading Kingbase (classic)    :  " << i_millis.count() <<  "ms" << std::endl;
+
 
     return 1;
 }
