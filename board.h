@@ -647,6 +647,7 @@ public:
     bool is_threefold_repetition();
 
     quint64 zobrist();
+    quint64 pos_hash();
 
 private:
     /**
@@ -674,6 +675,11 @@ private:
      * @brief turn is either WHITE or BLACK
      */
     bool undo_available;
+
+    bool m_zobrist_initialized;
+    bool m_pos_hash_initialized;
+    quint64 m_zobrist;
+    quint64 m_pos_hash;
 
     /**
      * @brief castling_rights stores the castling rights

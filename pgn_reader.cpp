@@ -1679,7 +1679,7 @@ int PgnReader::nReadGame(QTextStream& in, chess::Game* g) {
         }
     }
 
-    qDebug() << "one";
+    //qDebug() << "one";
     // try to set starting fen, if available
     if(!starting_fen.isEmpty()) {
         try {
@@ -1698,7 +1698,7 @@ int PgnReader::nReadGame(QTextStream& in, chess::Game* g) {
             return -1;
         }
     }
-    qDebug() << "two";
+    //qDebug() << "two";
     // we should now have a header, seek first non-empty line
     while(line.trimmed() == QString("") && !line.isEmpty()) {
         if(in.readLineInto(&line)) {;

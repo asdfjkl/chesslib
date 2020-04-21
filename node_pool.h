@@ -12,7 +12,7 @@ class NodePool
 {
 public:
     NodePool();
-    static void initPool();
+    static void reserve();
     static GameNode* makeNode();
     static void deleteNode(GameNode* node);
     static QVector<GameNode*> freeList;

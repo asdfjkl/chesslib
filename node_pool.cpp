@@ -10,7 +10,7 @@ NodePool::NodePool()
 
 }
 
-void NodePool::initPool() {
+void NodePool::reserve() {
 
     for(int i=0;i<MAX_NODE_COUNT;i++) {
         GameNode *node = new GameNode();
@@ -22,7 +22,9 @@ GameNode* NodePool::makeNode() {
 
     //assert(NodePool::freeList.size() > 0);
     if(NodePool::freeList.size() == 0) {
-        qDebug() << "EMPTY STORE!";
+        qDebug() << "EMPTY STORE, increasing!";
+        GameNode *node = new GameNode();
+        NodePool::freeList.append(node);
     }
     return NodePool::freeList.takeLast();
 }

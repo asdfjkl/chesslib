@@ -241,6 +241,8 @@ public:
     bool hasCommentSubstringMainline(QString &s, bool caseSensitive);
     */
 
+    bool matchesPosition(quint64 posHash);
+
     /**
      * @brief clearHeaders deletes all headers entries.
      */

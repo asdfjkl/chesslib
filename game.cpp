@@ -122,6 +122,21 @@ bool Game::hasCommentSubstringBelow(QString &s, GameNode* temp, bool caseSensiti
 }
 */
 
+bool Game::matchesPosition(quint64 posHash) {
+
+    GameNode* temp = this->getRootNode();
+    if(temp->getBoard()->pos_hash() == posHash) {
+        return true;
+    }
+    while(temp->variations.count() > 0) {
+        temp = temp->getVariation(0);
+        if(temp->getBoard()->pos_hash() == posHash) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /*
 bool Game::hasCommentSubstringMainline(QString &s, bool caseSensitive) {
 

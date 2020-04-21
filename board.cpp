@@ -321,8 +321,8 @@ Board::Board() {
     this->undo_available = false;
     this->last_was_null = false;
     this->prev_halfmove_clock = 0;
-    //this->transpositionTable = QMap<quint64, int>();
-    this->update_transposition_table();
+    this->m_zobrist_initialized = false;
+    this->m_pos_hash_initialized = false;
 }
 
 void Board::init_piece_list() {
@@ -390,8 +390,8 @@ Board::Board(bool initial_position) {
     this->undo_available = false;
     this->last_was_null = false;
     this->prev_halfmove_clock = 0;
-    //this->transpositionTable = QMap<quint64, int>();
-    this->update_transposition_table();
+    this->m_zobrist_initialized = false;
+    this->m_pos_hash_initialized = false;
 }
 
 bool Board::is_initial_position() {
@@ -725,8 +725,9 @@ Board::Board(const QString &fen_string) {
         throw std::invalid_argument("board position from supplied fen is inconsistent");
     }
     this->init_piece_list();
-    //this->transpositionTable = QMap<quint64, int>();
-    this->update_transposition_table();
+
+    this->m_zobrist_initialized = false;
+    this->m_pos_hash_initialized = false;
 }
 
 QString Board::idx_to_str(int idx) {
@@ -3243,76 +3244,89 @@ int Board::zobrist_piece_type(uint8_t piece) {
     throw std::invalid_argument("piece type out of range in ZobristHash:kind_of_piece");
 }
 
-void Board::update_transposition_table() {
-    quint64 current_zobrist = this->zobrist();
-    /*
-    if(this->transpositionTable.contains(current_zobrist)) {
-        int cnt = this->transpositionTable.value(current_zobrist);
-        this->transpositionTable.insert(current_zobrist, cnt+1);
+quint64 Board::pos_hash() {
+
+    if(this->m_pos_hash_initialized) {
+        return this->m_pos_hash;
     } else {
-        this->transpositionTable.insert(current_zobrist, 1);
-    }*/
+        quint64 piece = Q_UINT64_C(0);
+        for(int i=0;i<8;i++) {
+            for(int j=0;j<8;j++) {
+                uint8_t piece_at_ij = this->get_piece_at(i,j);
+                if(piece_at_ij != EMPTY) {
+                    int kind_of_piece = this->zobrist_piece_type(piece_at_ij);
+                    int offset_piece = 64 * kind_of_piece + 8 * j + i;
+                    piece = piece^POLYGLOT_RANDOM_64[offset_piece];
+                }
+            }
+        }
+        this->m_pos_hash = piece;
+        return this->m_pos_hash;
+    }
 }
 
 quint64 Board::zobrist() {
-    Board *b = this;
-    quint64 piece = Q_UINT64_C(0);
-    for(int i=0;i<8;i++) {
-        for(int j=0;j<8;j++) {
-            uint8_t piece_at_ij = b->get_piece_at(i,j);
-            if(piece_at_ij != EMPTY) {
-                int kind_of_piece = this->zobrist_piece_type(piece_at_ij);
-                int offset_piece = 64 * kind_of_piece + 8 * j + i;
-                piece = piece^POLYGLOT_RANDOM_64[offset_piece];
+
+    if(this->m_zobrist_initialized) {
+        return this->m_zobrist;
+    } else {
+        quint64 piece = Q_UINT64_C(0);
+        for(int i=0;i<8;i++) {
+            for(int j=0;j<8;j++) {
+                uint8_t piece_at_ij = this->get_piece_at(i,j);
+                if(piece_at_ij != EMPTY) {
+                    int kind_of_piece = this->zobrist_piece_type(piece_at_ij);
+                    int offset_piece = 64 * kind_of_piece + 8 * j + i;
+                    piece = piece^POLYGLOT_RANDOM_64[offset_piece];
+                }
             }
         }
-    }
-    //std::cout << "pieces:" << std::endl;
-    //std::cout << std::hex << piece << std::endl;
-    quint64 en_passent = Q_UINT64_C(0);
-    uint8_t ep_target = b->get_ep_target();
-    if(ep_target != 0) {
-        int file = (ep_target % 10) - 1;
-        // check if left or right is a pawn from player to move
-        if(b->turn == WHITE) {
-            uint8_t left = b->piece_at(ep_target-11);
-            uint8_t right = b->piece_at(ep_target-9);
-            if(left == WHITE_PAWN || right == WHITE_PAWN) {
-                en_passent = POLYGLOT_RANDOM_64[RANDOM_EN_PASSENT + file];
-            }
-        } else {
-            uint8_t left = b->piece_at(ep_target+11);
-            uint8_t right = b->piece_at(ep_target+9);
-            if(left == BLACK_PAWN || right == BLACK_PAWN) {
-                en_passent = POLYGLOT_RANDOM_64[RANDOM_EN_PASSENT + file];
+        //std::cout << "pieces:" << std::endl;
+        //std::cout << std::hex << piece << std::endl;
+        quint64 en_passent = Q_UINT64_C(0);
+        uint8_t ep_target = this->get_ep_target();
+        if(ep_target != 0) {
+            int file = (ep_target % 10) - 1;
+            // check if left or right is a pawn from player to move
+            if(this->turn == WHITE) {
+                uint8_t left = this->piece_at(ep_target-11);
+                uint8_t right = this->piece_at(ep_target-9);
+                if(left == WHITE_PAWN || right == WHITE_PAWN) {
+                    en_passent = POLYGLOT_RANDOM_64[RANDOM_EN_PASSENT + file];
+                }
+            } else {
+                uint8_t left = this->piece_at(ep_target+11);
+                uint8_t right = this->piece_at(ep_target+9);
+                if(left == BLACK_PAWN || right == BLACK_PAWN) {
+                    en_passent = POLYGLOT_RANDOM_64[RANDOM_EN_PASSENT + file];
+                }
             }
         }
+        //std::cout << "ep:" << std::endl;
+        //std::cout << std::hex << en_passent << std::endl;
+        quint64 castle = Q_UINT64_C(0);
+        if(this->can_castle_wking()) {
+            castle = castle^POLYGLOT_RANDOM_64[RANDOM_CASTLE];
+        }
+        if(this->can_castle_wqueen()) {
+            castle = castle^POLYGLOT_RANDOM_64[RANDOM_CASTLE+1];
+        }
+        if(this->can_castle_bking()) {
+            castle = castle^POLYGLOT_RANDOM_64[RANDOM_CASTLE+2];
+        }
+        if(this->can_castle_bqueen()) {
+            castle = castle^POLYGLOT_RANDOM_64[RANDOM_CASTLE+3];
+        }
+        //std::cout << "castle:" << std::endl;
+        //std::cout << std::hex << castle << std::endl;
+        quint64 turn = Q_UINT64_C(0);
+        if(this->turn == WHITE) {
+            turn = POLYGLOT_RANDOM_64[RANDOM_TURN];
+        }
+
+        this->m_zobrist = piece^castle^en_passent^turn;
+        return this->m_zobrist;
     }
-    //std::cout << "ep:" << std::endl;
-    //std::cout << std::hex << en_passent << std::endl;
-    quint64 castle = Q_UINT64_C(0);
-    if(b->can_castle_wking()) {
-        castle = castle^POLYGLOT_RANDOM_64[RANDOM_CASTLE];
-    }
-    if(b->can_castle_wqueen()) {
-        castle = castle^POLYGLOT_RANDOM_64[RANDOM_CASTLE+1];
-    }
-    if(b->can_castle_bking()) {
-        castle = castle^POLYGLOT_RANDOM_64[RANDOM_CASTLE+2];
-    }
-    if(b->can_castle_bqueen()) {
-        castle = castle^POLYGLOT_RANDOM_64[RANDOM_CASTLE+3];
-    }
-    //std::cout << "castle:" << std::endl;
-    //std::cout << std::hex << castle << std::endl;
-    quint64 turn = Q_UINT64_C(0);
-    if(b->turn == WHITE) {
-        turn = POLYGLOT_RANDOM_64[RANDOM_TURN];
-    }
-    //std::cout << "turn:" << std::endl;
-    //std::cout << std::hex << turn << std::endl;
-    quint64 key = piece^castle^en_passent^turn;
-    return key;
 }
 
 
