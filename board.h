@@ -280,14 +280,6 @@ public:
     Board(const QString &fen_string);
 
     /**
-     * @brief Board creates new Board copying position of the pieces of the supplied
-     *              board. Parameters (i.e. undo history, move numbers etc. are _not_
-     *              copied, just the position of the pieces
-     * @param board The board where the position of pieces is taken from
-     */
-    //Board(Board *board);
-
-    /**
      * @brief copy constructor to create deep copy of board
      *        TODO: do we really need this?! default might suffice after refactoring
      * @param other
@@ -299,14 +291,6 @@ public:
      * @return
      */
     QString fen();
-
-    /**
-     * @brief copy_and_apply applies move and returns a deep copy of current board
-     *        no check of legality. always call board.is_legal(m) before applying move
-     * @param m move to apply
-     * @return copy of board
-     */
-    //Board* copy_and_apply(const Move &m);
 
     /**
      * @brief apply applies supplied move. doesn't check for legality
@@ -343,9 +327,7 @@ public:
      * @return pseudo legal move list
      */
     QVector<Move> pseudo_legal_moves_from(int from_square_idx, bool with_castles, bool turn_color);
-    QVector<Move> pseudo_legal_moves_from_pt(int from_square, uint8_t to_square, uint8_t piece_type, bool with_castles, bool turn);
-
-    QVector<Move> pseudo_legal_moves_san_parse(uint8_t to_square, uint8_t piece_type);
+    QVector<Move> pseudo_legal_moves_to(uint8_t to_square, uint8_t piece_type, bool with_castles, bool turn);
 
     /**
      * @brief legal_moves returns move list of all legal moves in position
@@ -370,8 +352,6 @@ public:
      */
     bool pseudo_is_legal_move(const Move &);
 
-    // extern: required
-
     /**
      * @brief is_legal_move checks whether the supplied move is legal in the board
      *                      position. Always call before applying a move on a board!
@@ -385,8 +365,6 @@ public:
      * @return true only if both move is legal and pawn move and promotes. false, otherwise.
      */
     bool is_legal_and_promotes(const Move&);
-
-    // end extern required
 
     /**
      * @brief is_checkmate tests whether player who is on the move in current position
@@ -404,17 +382,12 @@ public:
      */
     bool is_stalemate();
 
-
     /**
      * @brief is_check checks if the player whose on the move in the current position
      *                 is in check
      * @return true, if player in check, false otherwise.
      */
     bool is_check();
-
-
-
-
 
     /**
      * @brief san computes the standard algebraic notation for the supplied move
@@ -424,18 +397,6 @@ public:
      * @return string containing san representation of move (no move number!)
      */
     QString san(const Move &m);
-
-    /**
-     * @brief parse_san Given board position and san string, parses the san string
-     *        and computes a move for it. Throws std::invalid_argument if the
-     *        supplied san string cannot be parsed successfully (i.e. illegal move,
-     *        illegal formatted string etc.)
-     * @param s string containing a san representation of a move (no move number!)
-     * @return move object (if parsed successfully)
-     */
-    Move parse_san(QString s);
-
-    Move parse_san_fast(QString s);
 
     /**
      * @brief movePromotes checks if the supplied move (ignoring the promotion value stored
@@ -649,6 +610,9 @@ public:
     quint64 zobrist();
     quint64 pos_hash();
 
+        QString printRaw();
+
+
 private:
     /**
      * @brief init_pos
@@ -663,6 +627,7 @@ private:
      * essentially linearized 10x12 array
      */
     uint8_t board[120];
+
     /**
      * @brief old_board stores the previous position for undo()
      */
@@ -713,12 +678,12 @@ private:
 
     int zobrist_piece_type(uint8_t piece);
 
-    void update_transposition_table();
-
     void remove_from_piece_list(bool color, uint8_t piece_type, uint8_t idx);
     void add_to_piece_list(bool color, uint8_t piece_type, uint8_t idx);
 
     friend std::ostream& operator<<(std::ostream& strm, const Board &b);
+
+
 
 };
 

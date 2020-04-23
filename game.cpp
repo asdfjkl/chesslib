@@ -125,11 +125,18 @@ bool Game::hasCommentSubstringBelow(QString &s, GameNode* temp, bool caseSensiti
 bool Game::matchesPosition(quint64 posHash) {
 
     GameNode* temp = this->getRootNode();
+    Board *b = temp->getBoard();
+    //std::cout << *b << std::endl;
     if(temp->getBoard()->pos_hash() == posHash) {
         return true;
     }
-    while(temp->variations.count() > 0) {
+    while(temp->variations.size() > 0) {
         temp = temp->getVariation(0);
+        b = temp->getBoard();
+        //std::cout << *b << std::endl;
+        //qDebug() << "";
+        //qDebug().noquote() << b->printRaw();
+        //qDebug() << "";
         if(temp->getBoard()->pos_hash() == posHash) {
             return true;
         }

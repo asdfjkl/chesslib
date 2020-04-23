@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
     qDebug() << "starting up";
     //return a.exec();
     //QFile file("C:\\Users\\user\\MyFiles\\workspace\\test_databases\\kingbase_test.pgn");
-    QFile file("C:\\Users\\user\\MyFiles\\workspace\\demo.pgn");
-    //QFile file("/home/gast/tmp/demo.pgn");
+    //QFile file("C:\\Users\\user\\MyFiles\\workspace\\demo.pgn");
+    QFile file("/home/user/tmp2/demo.pgn");
 
 
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
     auto start = std::chrono::steady_clock::now();
 
     chess::Game *g = new chess::Game();
-    pgnReader.nReadGame(in,g);
+    pgnReader.readGame(in,g);
     //chess::Game *g = nullptr;
 
     qDebug() << "end reading single game";
@@ -118,13 +118,14 @@ int main(int argc, char *argv[])
 
 
     //QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\KingBaseLite2016-03-E60-E99.pgn";
-    QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\millionbase-2.22.pgn";
+    //QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\millionbase-2.22.pgn";
+    QString kingbase = "/home/user/tmp2/millionbase-2.22.pgn";
     //QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\demo_two_games.pgn";
 
 
     start = std::chrono::steady_clock::now();
     QVector<qint64> offsets = pgnReader.scanPgn(kingbase, true);
-    for(int i=0;i<10;i++) {
+    for(int i=0;i<offsets.size();i++) {
         qDebug() << "offset: " << offsets.at(i);
     }
     stop = std::chrono::steady_clock::now();
@@ -132,7 +133,9 @@ int main(int argc, char *argv[])
     i_millis = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
     std::cout << "Scanning Kingbase took :  " << i_millis.count() <<  "ms" << std::endl;
 
-    const char* encoding = pgnReader.detect_encoding(kingbase);
+    const char* utf8 = "UTF-8";
+    const char* isoLatin1 = "ISO 8859-1";
+    bool isUtf8 = pgnReader.isUtf8(kingbase);
 
     file.close();
     QFile file1(kingbase);
@@ -141,7 +144,12 @@ int main(int argc, char *argv[])
         throw std::invalid_argument("unable to open file w/ supplied filename");
     }
     QTextStream in1(&file1);
-    QTextCodec *codec1 = QTextCodec::codecForName(encoding);
+    QTextCodec *codec1;
+    if(isUtf8) {
+        codec1 = QTextCodec::codecForName(utf8);
+    } else {
+        codec1 = QTextCodec::codecForName(isoLatin1);
+    }
     in1.setCodec(codec1);
 
     chess::NodePool::deleteNode(g->getRootNode());
@@ -154,7 +162,9 @@ int main(int argc, char *argv[])
 
     qDebug() << "# offsets: " << offsets.size();
     start = std::chrono::steady_clock::now();
-    for(int i=0;i<2190000;i++) {
+    //for(int i=0;i<2190000;i++) {
+    for(int i=0;i<2;i++) {
+    //for(int i=0;i<offsets.size();i++) {
     //qDebug() << "# offsets: " << offsets.size();
     //for(int i=0;i<offsets.size();i++) {
         if(i%50000 == 0) {
@@ -163,17 +173,30 @@ int main(int argc, char *argv[])
         //qDebug() << "at game i";
         //qDebug() << chess::NodePool::freeList.size();
         in1.seek(offsets[i]);
-        pgnReader.nReadGameFromFile(in1, offsets[i], g);
-        /*
-        if(i == 1) {
-            g->goToLeaf();
-            qDebug() << "i=1: " << g->getCurrentNode()->getBoard()->pos_hash();
-            g->goToParent();
-            qDebug() << "i=1: " << g->getCurrentNode()->getBoard()->pos_hash();
-        }*/
+        pgnReader.readGame(in1, offsets[i], g);
+
+        //qDebug() << "I: " << i;
         if(g->matchesPosition(pHash)) {
             qDebug() << "found pos @: " << i;
         }
+        //qDebug() << pgnPrinter.printGame(*g);
+        /*
+
+        if(i == 1) {
+            qDebug() << "seach,   i=1: " << pHash;
+            //g->goToRoot();
+            qDebug() << "root,    i=1: " << g->getCurrentNode()->getBoard()->pos_hash();
+            //g->goToLeaf();
+            qDebug() << "leaf,    i=1: " << g->getCurrentNode()->getBoard()->pos_hash();
+            //g->goToParent();
+            qDebug() << "leaf -1, i=1: " << g->getCurrentNode()->getBoard()->pos_hash();
+            qDebug() << pgnPrinter.printGame(*g);
+        }*/
+        //if(g->matchesPosition(pHash)) {
+        //    qDebug() << "found pos @: " << i;
+        //} else {
+        //    qDebug() << "no match";
+        //}
         //qDebug() << pgnPrinter.printGame(*g);
         //delete g;
         //
