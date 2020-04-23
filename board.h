@@ -25,210 +25,11 @@
 #include <cstdint>
 #include <QRegularExpression>
 #include <QMap>
+#include "constants.h"
 #include "move.h"
 
 namespace chess {
 
-// empty board
-const uint8_t EMPTY_POS[120] = {
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
-};
-
-
-// initial board position
-const uint8_t INIT_POS[120] = {
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0x04, 0x02, 0x03, 0x05, 0x06, 0x03, 0x02, 0x04, 0xFF,
-    0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0xFF,
-    0xFF, 0x84, 0x82, 0x83, 0x85, 0x86, 0x83, 0x82, 0x84, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
-};
-
-// attack table
-// the index of this array corresponds to the distance
-// between two squares of the board (note the board is
-// encoded as a one dim array of size 120, where A1 = 21, H1 = 28
-// A8 = 91, A8 = 98.
-// the value denotes whether an enemy rook, biship knight, queen, king
-// on one square can attack the other square. The following encoding
-// is used:
-// Bitposition    Piece
-// 0              Knight
-// 1              Bishop
-// 2              Rook
-// 3              Queen
-// 4              King
-// e.g. distance one, i.e. index 1 (=left, up, down, right square) has
-// value 0x1C = MSB 00011100 LSB, i.e. king, queen, rook can
-// potentially attack
-const uint8_t ATTACK_TABLE[78] = {
-    0x00, 0x1C, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C, 0x01, 0x1a,
-    0x1C, 0x1A, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x01,
-    0x0C, 0x01, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00,
-    0x0C, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x00,
-    0x0C, 0x00, 0x00, 0x00, 0x0A, 0x0a, 0x00, 0x00, 0x00, 0x00,
-    0x0C, 0x00, 0x00, 0x00, 0x0a, 0x0A, 0x00, 0x00, 0x00, 0x00,
-    0x0C, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x00,
-    0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A
-};
-
-const uint8_t IDX_BPAWN = 0;
-const uint8_t IDX_WPAWN = 1;
-const uint8_t IDX_KNIGHT = 2;
-const uint8_t IDX_BISHOP = 3;
-const uint8_t IDX_ROOK = 4;
-const uint8_t IDX_QUEEN = 5;
-const uint8_t IDX_KING = 6;
-
-// first dim is for different piece types
-// [piece_type[0] is DCOUNT (as in Byte Magazine paper)
-// [piece_type[1] ... [piece_type][4] resp.
-// [piece_type[1] ... [piece_type][8] contain
-// DPOINT table
-const int8_t DIR_TABLE[7][9] = {
-    { 4, -10, -20, -11, -9 ,   0,   0,   0,   0 }, // max 4 black pawn directions, rest 0's
-    { 4, +10, +20, +11, +9 ,   0,   0,   0,   0 }, // max 4 white pawn directions, rest 0's
-    { 8, -21, -12, +8 , +19, +21, +12, -8, -19 }, // 8 knight directions
-    { 4, +9 , +11, -11, -9 ,   0,   0,   0,   0 }, // 4 bishop directions
-    { 4, +10, -10, +1 , -1 ,   0,   0,   0,   0 }, // 4 rook directions
-    { 8, +9 , +11, -11, -9 ,   +10, -10, +1, -1 }, // 8 queen directions
-    { 8, +9 , +11, -11, -9 ,   +10, -10, +1, -1 }  // 8 king directions (= queen dir's)
-};
-
-// players
-const bool WHITE = false;
-const bool BLACK = true;
-
-// bit positions of flags
-const uint8_t COLOR_FLAG = 7;
-//const uint8_t CASTLE_FLAG = 4;
-//const uint8_t MOVED_FLAG = 4;
-
-// bit index positions for castling right uint8_t
-// bit is set means castling is possible
-const uint8_t CASTLE_WKING_POS = 0;
-const uint8_t CASTLE_WQUEEN_POS = 1;
-const uint8_t CASTLE_BKING_POS = 2;
-const uint8_t CASTLE_BQUEEN_POS = 3;
-
-const QString STARTING_FEN = QString("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-
-// board positions
-const uint8_t A1 = 21;
-const uint8_t A2 = 31;
-const uint8_t A3 = 41;
-const uint8_t A4 = 51;
-const uint8_t A5 = 61;
-const uint8_t A6 = 71;
-const uint8_t A7 = 81;
-const uint8_t A8 = 91;
-
-const uint8_t B1 = 22;
-const uint8_t B2 = 32;
-const uint8_t B3 = 42;
-const uint8_t B4 = 52;
-const uint8_t B5 = 62;
-const uint8_t B6 = 72;
-const uint8_t B7 = 82;
-const uint8_t B8 = 92;
-
-const uint8_t C1 = 23;
-const uint8_t C2 = 33;
-const uint8_t C3 = 43;
-const uint8_t C4 = 53;
-const uint8_t C5 = 63;
-const uint8_t C6 = 73;
-const uint8_t C7 = 83;
-const uint8_t C8 = 93;
-
-const uint8_t D1 = 24;
-const uint8_t D2 = 34;
-const uint8_t D3 = 44;
-const uint8_t D4 = 54;
-const uint8_t D5 = 64;
-const uint8_t D6 = 74;
-const uint8_t D7 = 84;
-const uint8_t D8 = 94;
-
-const uint8_t E1 = 25;
-const uint8_t E2 = 35;
-const uint8_t E3 = 45;
-const uint8_t E4 = 55;
-const uint8_t E5 = 65;
-const uint8_t E6 = 75;
-const uint8_t E7 = 85;
-const uint8_t E8 = 95;
-
-const uint8_t F1 = 26;
-const uint8_t F2 = 36;
-const uint8_t F3 = 46;
-const uint8_t F4 = 56;
-const uint8_t F5 = 66;
-const uint8_t F6 = 76;
-const uint8_t F7 = 86;
-const uint8_t F8 = 96;
-
-const uint8_t G1 = 27;
-const uint8_t G2 = 37;
-const uint8_t G3 = 47;
-const uint8_t G4 = 57;
-const uint8_t G5 = 67;
-const uint8_t G6 = 77;
-const uint8_t G7 = 87;
-const uint8_t G8 = 97;
-
-const uint8_t H1 = 28;
-const uint8_t H2 = 38;
-const uint8_t H3 = 48;
-const uint8_t H4 = 58;
-const uint8_t H5 = 68;
-const uint8_t H6 = 78;
-const uint8_t H7 = 88;
-const uint8_t H8 = 98;
-
-const uint8_t WHITE_KING = 0x06;
-const uint8_t WHITE_QUEEN = 0x05;
-const uint8_t WHITE_ROOK = 0x04;
-const uint8_t WHITE_BISHOP = 0x03;
-const uint8_t WHITE_KNIGHT = 0x02;
-const uint8_t WHITE_PAWN = 0x01;
-const uint8_t WHITE_ANY_PIECE = 0x07;
-
-const uint8_t BLACK_KING = 0x86;
-const uint8_t BLACK_QUEEN = 0x85;
-const uint8_t BLACK_ROOK = 0x84;
-const uint8_t BLACK_BISHOP = 0x83;
-const uint8_t BLACK_KNIGHT = 0x82;
-const uint8_t BLACK_PAWN = 0x81;
-const uint8_t BLACK_ANY_PIECE = 0x87;
-
-const uint8_t ANY_SQUARE = 0;
-
-const int GENERAL_ERROR = -1;
-
-const bool GEN_INC_CASTLE_MOVES = true;
-const bool GEN_NO_CASTLE_MOVES = false;
-
-const QRegularExpression FEN_CASTLES_REGEX = QRegularExpression("^-|[KQABCDEFGH]{0,2}[kqabcdefgh]{0,2}$");
-const QRegularExpression SAN_REGEX = QRegularExpression("^([NBKRQ])?([a-h])?([1-8])?x?([a-h][1-8])(=?[nbrqNBRQ])?(\\+|#)?$");
 
 class Board
 {
@@ -605,12 +406,11 @@ public:
     uint8_t get_ep_target();
 
     bool can_claim_fifty_moves();
-    bool is_threefold_repetition();
 
     quint64 zobrist();
     quint64 pos_hash();
 
-        QString printRaw();
+    QString printRaw();
 
 
 private:
@@ -633,7 +433,6 @@ private:
      */
     uint8_t old_board[120];
 
-    // piece lists
     uint8_t piece_list[2][7][10];
 
     /**
@@ -673,8 +472,6 @@ private:
     QString idx_to_str(int idx);
 
     void init_piece_list();
-
-    //QMap<quint64, int> transpositionTable;
 
     int zobrist_piece_type(uint8_t piece);
 

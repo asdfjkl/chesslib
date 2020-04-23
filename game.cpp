@@ -144,34 +144,10 @@ bool Game::matchesPosition(quint64 posHash) {
     return false;
 }
 
-/*
-bool Game::hasCommentSubstringMainline(QString &s, bool caseSensitive) {
-
-    GameNode* temp = this->getRootNode();
-    if(caseSensitive) {
-        if(temp->getComment().contains(s)) {
-            return true;
-        }
-    } else {
-        if(temp->getComment().contains(s, Qt::CaseInsensitive)) {
-            return true;
-        }
-    }
-    while(temp->variations.count() > 0) {
-        temp = temp->getVariation(0);
-        if(caseSensitive) {
-            if(temp->getComment().contains(s)) {
-                return true;
-            }
-        } else {
-            if(temp->getComment().contains(s, Qt::CaseInsensitive)) {
-                return true;
-            }
-        }
-    }
+bool isThreefoldRepetition() {
+    //TODO
     return false;
 }
-*/
 
 
 GameNode* Game::findNodeByIdRec(int id, GameNode *node) {
@@ -290,10 +266,9 @@ void Game::applyMove(Move &m) {
     }
     if(!exists_child) {
         GameNode *current = this->getCurrentNode();
-        Board b_current = current->getBoard();
-        Board b_child = Board(b_current); //b_current.copy_and_apply(m);
+        Board *b_current = current->getBoard();
+        Board b_child = Board(*b_current);
         b_child.apply(m);
-        //GameNode *new_current = new GameNode();
         GameNode *new_current = NodePool::makeNode();
         new_current->setBoard(b_child);
         new_current->setMove(m);

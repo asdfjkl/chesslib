@@ -28,68 +28,6 @@
 
 namespace chess {
 
-const QRegularExpression TAG_REGEX = QRegularExpression("\\[([A-Za-z0-9]+)\\s+\"(.*)\"\\]");
-
-const int NAG_NULL = 0;
-
-const int NAG_GOOD_MOVE = 1;
-//A good move. Can also be indicated by ``!`` in PGN notation."""
-
-const int NAG_MISTAKE = 2;
-//A mistake. Can also be indicated by ``?`` in PGN notation."""
-
-const int NAG_BRILLIANT_MOVE = 3;
-//A brilliant move. Can also be indicated by ``!!`` in PGN notation."""
-
-const int NAG_BLUNDER = 4;
-//A blunder. Can also be indicated by ``??`` in PGN notation."""
-
-const int NAG_SPECULATIVE_MOVE = 5;
-//A speculative move. Can also be indicated by ``!?`` in PGN notation."""
-
-const int NAG_DUBIOUS_MOVE = 6;
-//A dubious move. Can also be indicated by ``?!`` in PGN notation."""
-
-const int NAG_FORCED_MOVE = 7;
-
-const int NAG_DRAWISH_POSITION = 10;
-
-const int NAG_UNCLEAR_POSITION = 13;
-
-const int NAG_WHITE_MODERATE_ADVANTAGE = 16;
-const int NAG_BLACK_MODERATE_ADVANTAGE = 17;
-const int NAG_WHITE_DECISIVE_ADVANTAGE = 18;
-const int NAG_BLACK_DECISIVE_ADVANTAGE = 19;
-const int NAG_WHITE_ZUGZWANG = 22;
-const int NAG_BLACK_ZUGZWANG = 23;
-
-const int NAG_WHITE_HAS_ATTACK = 40;
-const int NAG_BLACK_HAS_ATTACK = 41;
-
-const int NAG_WHITE_MODERATE_COUNTERPLAY = 132;
-const int NAG_BLACK_MODERATE_COUNTERPLAY = 133;
-
-// tokens for move parsing
-const int TKN_ERROR = -1;
-const int TKN_PAWN_MOVE = 1;
-const int TKN_CASTLE = 2;
-const int TKN_ROOK_MOVE = 3;
-const int TKN_KNIGHT_MOVE = 4;
-const int TKN_BISHOP_MOVE = 5;
-const int TKN_QUEEN_MOVE = 6;
-const int TKN_KING_MOVE = 7;
-const int TKN_OPEN_VARIATION = 8;
-const int TKN_CLOSE_VARIATION = 9;
-const int TKN_NAG = 10;
-const int TKN_OPEN_COMMENT = 11;
-const int TKN_RES_WHITE_WIN = 12;
-const int TKN_RES_BLACK_WIN = 13;
-const int TKN_RES_DRAW = 14;
-const int TKN_RES_UNDEFINED = 15;
-const int TKN_CHECK = 16;
-const int TKN_EOL = 17;
-const int TKN_NULL_MOVE = 18;
-
 struct HeaderOffset
 {
     qint64 offset;

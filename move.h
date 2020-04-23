@@ -28,19 +28,6 @@
 
 namespace chess {
 
-// general piece encodings
-// note specific encodings
-// for black/white in board.h
-// general encodings have same values as WHITE
-const uint8_t EMPTY = 0;
-const uint8_t PAWN = 1;
-const uint8_t KNIGHT = 2;
-const uint8_t BISHOP = 3;
-const uint8_t ROOK = 4;
-const uint8_t QUEEN = 5;
-const uint8_t KING = 6;
-const uint8_t ANY_PIECE = 8;
-
 
 class Move
 {

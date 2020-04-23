@@ -104,11 +104,6 @@ QVector<qint64> PgnReader::scanPgn(QString &filename, bool is_utf8) {
 
     int i= 0;
     while(!file.atEnd()) {
-
-        //if(offsets.length() % 100000 == 0) {
-        //    std::cout << offsets.length() << std::endl;
-        //}
-
         i++;
         byteLine = file.readLine();
         if(!is_utf8) {
@@ -124,19 +119,12 @@ QVector<qint64> PgnReader::scanPgn(QString &filename, bool is_utf8) {
         }
 
         if(!inComment && line.startsWith("[")) {
-            //QRegularExpressionMatch match_t = TAG_REGEX.match(line);
 
-            //if(match_t.hasMatch()) {
-
-                if(game_pos == -1) {
-                    game_pos = last_pos;
-                }
-                last_pos = file.pos();
-                //while(line.startsWith("[")) {
-                //    byteLine = file.readLine();
-                //}
-                continue;
-            //}
+            if(game_pos == -1) {
+                game_pos = last_pos;
+            }
+            last_pos = file.pos();
+            continue;
         }
         if((!inComment && line.contains("{"))
                 || (inComment && line.contains("}"))) {
@@ -257,28 +245,17 @@ bool PgnReader::isRow(const QChar &c) {
 }
 
 void PgnReader::addMove(GameNode *&node, Move &m) {
-    //GameNode *next = new GameNode();
-    //qDebug() << "adding move:";
+
     GameNode *next = NodePool::makeNode();
-    //qDebug() << "adding move done";
     Board* board = node->getBoard();
+
     Board b_next = Board(*board);
     b_next.apply(m);
-    //std::cout << "last move: " << m.uci().toStdString() << "(" << node->getBoard()->san(m).toStdString() << ")" << std::endl;
     next->setMove(m);
     next->setBoard(b_next);
     next->setParent(node);
     node->addVariation(next);
     node = next;
-    /*
-    std::cout << (*node->getBoard()) << std::endl;
-    if(node->getBoard()->turn == WHITE) {
-        std::cout << "white to move" << std::endl;
-    } else {
-        std::cout << "black to move" << std::endl;
-    }
-    std::cout << std::endl;
-    */
 }
 
 
@@ -293,7 +270,6 @@ bool PgnReader::parsePawnMove(QString &line, int &idx, GameNode *&node) {
             // and then digit representing row, like exd4 (white)
             // then parse d, 4, and check wether there is a pawn
             // on e(4-1) = e3
-            //qDebug() << "takes";
             if(idx+3 < line.size()) {
                 if(this->isCol(line.at(idx+2)) && this->isRow(line.at(idx+3))) {
                     int col_to = Board::alpha_to_pos(line.at(idx+2));
@@ -391,22 +367,12 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
 
     Board *board = node->getBoard();
     int to_internal = Board::xy_to_internal(to_col, to_row);
-    // test: speed of move gen!!
-    //Move m = Move(E1,C1);
-    //this->addMove(node,m);
-    //return true;
-
-    QVector<Move> pseudos = board->pseudo_legal_moves_to(to_internal, piece_type, GEN_NO_CASTLE_MOVES, board->turn);
-    /*
-    for(int i = 0;i< pseudos.size();i++) {
-        assert(board->board[pseudos.at(i).from] != 0xff);
-    }*/
+    QVector<Move> pseudos = board->pseudo_legal_moves_to(to_internal, piece_type, false, board->turn);
     if(pseudos.size() == 1) {
         Move m = pseudos.at(0);
         this->addMove(node,m);
         return true;
     } else {
-        //QVector<Move> legals = board->legal_moves(to_internal, piece_type);
         QVector<Move> legals = board->legals_from_pseudos(pseudos);
         if(legals.size() == 1) {
             Move m = legals.at(0);
@@ -424,11 +390,7 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
     Board *board = node->getBoard();
     int from_col = Board::alpha_to_pos(qc_from_col);
     int to_internal = Board::xy_to_internal(to_col, to_row);
-    QVector<Move> pseudos = board->pseudo_legal_moves_to(to_internal, piece_type, GEN_NO_CASTLE_MOVES, board->turn);
-    /*
-    for(int i = 0;i< pseudos.size();i++) {
-        assert(board->board[pseudos.at(i).from] != 0xff);
-    }*/
+    QVector<Move> pseudos = board->pseudo_legal_moves_to(to_internal, piece_type, false, board->turn);
     QVector<Move> filter;
     for(int i=0;i<pseudos.size();i++) {
         Move m = pseudos.at(i);
@@ -441,7 +403,6 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
         this->addMove(node,m);
         return true;
     } else {
-        //QVector<Move> legals = board->legal_moves(to_internal, piece_type);
         QVector<Move> legals = board->legals_from_pseudos(pseudos);
         if(legals.size() == 1) {
             Move m = legals.at(0);
@@ -457,11 +418,7 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
 
     Board *board = node->getBoard();
     int to_internal = Board::xy_to_internal(to_col, to_row);
-    QVector<Move> pseudos = board->pseudo_legal_moves_to(to_internal, piece_type, GEN_NO_CASTLE_MOVES, board->turn);
-    /*
-    for(int i = 0;i< pseudos.size();i++) {
-        assert(board->board[pseudos.at(i).from] != 0xff);
-    }*/
+    QVector<Move> pseudos = board->pseudo_legal_moves_to(to_internal, piece_type, false, board->turn);
     QVector<Move> filter;
     for(int i=0;i<pseudos.size();i++) {
         Move m = pseudos.at(i);
@@ -474,7 +431,6 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
         this->addMove(node,m);
         return true;
     } else {
-        //QVector<Move> legals = board->legal_moves(to_internal, piece_type);
         QVector<Move> legals = board->legals_from_pseudos(pseudos);
         if(legals.size() == 1) {
             Move m = legals.at(0);
@@ -652,7 +608,6 @@ void PgnReader::parseNAG(QString &line, int &idx, GameNode *node) {
 
 int PgnReader::getNetxtToken(QString &line, int &idx) {
 
-    //qDebug() << "get next token, @ " << line[idx];
     int lineSize = line.size();
     while(idx < lineSize) {
         QChar ci = line.at(idx);
@@ -773,8 +728,6 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
                 // don't add FEN tag explicitly,
                 // will be always automatically generated and added
                 // when printing a game later...
-                //std::cout << tag.toStdString() << ":" << value.toStdString() << std::endl;
-
                 if(tag == QString::fromLatin1("FEN")) {
                     starting_fen = value;
                 } else {
@@ -794,8 +747,6 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
             return -1;
         }
     }
-
-    //qDebug() << "one";
     // try to set starting fen, if available
     if(!starting_fen.isEmpty()) {
         try {
@@ -814,14 +765,13 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
             return -1;
         }
     }
-    //qDebug() << "two";
     // we should now have a header, seek first non-empty line
     while(line.trimmed() == QString("") && !line.isEmpty()) {
         if(in.readLineInto(&line)) {;
             continue;
         } else {
             std::cerr << "error reading pgn file";
-            return 0;
+            return -1;
         }
     }
 
@@ -841,70 +791,54 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
             firstLine = false;
         }
         if(lineReadOk) {
-            //qDebug() << line;
             if(line.startsWith(QString::fromLatin1("%"))) {
                 continue;
             }
             int idx = 0;
             while(idx < line.size()) {
-                //if(m_game_stack.size() > 0) {
-                //    qDebug() << "stack top: " << m_game_stack.top()->getMove().uci();
-                //}
                 int tkn = getNetxtToken(line,idx);
                 if(tkn == TKN_EOL) {
-                    //qDebug() << "EOL";
                     break;
                 }
                 if(tkn == TKN_RES_WHITE_WIN) {
                     // 1-0
-                    //qDebug() << line.mid(idx,4);
                     g->setResult(RES_WHITE_WINS);
                     idx += 4;
                 }
                 if(tkn == TKN_RES_BLACK_WIN) {
                     // 0-1
-                    //qDebug() << line.mid(idx,4);
                     g->setResult(RES_BLACK_WINS);
                     idx += 4;
                 }
                 if(tkn == TKN_RES_UNDEFINED) {
                     // *
-                    //qDebug() << line.mid(idx,4);
                     g->setResult(RES_UNDEF);
                     idx += 2;
                 }
                 if(tkn == TKN_RES_DRAW) {
                     // 1/2-1/2
-                    //qDebug() << line.mid(idx,4);
                     g->setResult(RES_DRAW);
                     idx += 8;
                 }
                 if(tkn == TKN_PAWN_MOVE) {
-                    //qDebug() << line.mid(idx,4);
                     parsePawnMove(line,idx,current);
                 }
                 if(tkn == TKN_CASTLE) {
-                    //qDebug() << line.mid(idx,4);
                     parseCastleMove(line,idx,current);
                 }
                 if(tkn == TKN_ROOK_MOVE) {
-                    //qDebug() << line.mid(idx,4);
                     parsePieceMove(ROOK,line,idx,current);
                 }
                 if(tkn == TKN_KNIGHT_MOVE) {
-                    //qDebug() << line.mid(idx,4);
                     parsePieceMove(KNIGHT,line,idx,current);
                 }
                 if(tkn == TKN_BISHOP_MOVE) {
-                    //qDebug() << line.mid(idx,4);
                     parsePieceMove(BISHOP,line,idx,current);
                 }
                 if(tkn == TKN_QUEEN_MOVE) {
-                    //qDebug() << line.mid(idx,4);
                     parsePieceMove(QUEEN,line,idx,current);
                 }
                 if(tkn == TKN_KING_MOVE) {
-                    //qDebug() << line.mid(idx,4);
                     parsePieceMove(KING,line,idx,current);
                 }
                 if(tkn == TKN_CHECK) {
@@ -916,41 +850,27 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
                     idx+=2;
                 }
                 if(tkn == TKN_OPEN_VARIATION) {
-                    //qDebug() << line.mid(idx,10);
-                    //qDebug() << "putting node on stack";
-                    //qDebug() << "stack size before push: " << m_game_stack.size();
                     // put current node on stack, so that we don't forget it.
                     m_game_stack.push(current);
-                    //qDebug() << current->getMove().uci();
-                    //qDebug() << "stack size after pushing: " << m_game_stack.size();
                     current = current->getParent();
                     idx+=1;
                 }
                 if(tkn == TKN_CLOSE_VARIATION) {
-                    //qDebug() << line.mid(idx,10);
                     // pop from stack. but always leave root
-                    //qDebug() << "popping node from stack";
-                    //qDebug() << "stack size: " << m_game_stack.size();
-                    //qDebug() << "stack top before popping: " << m_game_stack.top()->getMove().uci();
                     if(m_game_stack.size() > 1) {
                         current = m_game_stack.pop();
                     }
-                    //qDebug() << "stack size after popping: " << m_game_stack.size();
-                    //qDebug() << current->getMove().uci();
                     idx+=1;
                 }
                 if(tkn == TKN_NAG) {
-                    //qDebug() << line.mid(idx,4);
                     parseNAG(line, idx, current);
                 }
                 if(tkn == TKN_OPEN_COMMENT) {
-                    //qDebug() << "open comment: " << line.mid(idx, 5);
                     QStringRef rest_of_line = line.midRef(idx+1, line.size()-(idx+1));
                     int end = rest_of_line.indexOf(QString::fromLatin1("}"));
                     if(end >= 0) {
                         QString comment_line = line.mid(idx+1, end);
                         current->setComment(comment_line);
-                        //qDebug() << "single comment line: " << comment_line;
                         idx = idx+end+1;
                     } else {
                         // get comment over multiple lines
@@ -963,7 +883,6 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
                         bool readOK = in.readLineInto(&line);
                         if(!readOK) {
                             QString comment_joined = comment_lines.join(QString::fromLatin1("\n"));
-                            //qDebug() << "comment err: no } found" << comment_joined;
                             current->setComment(comment_joined);
                             continue;
                         }
@@ -979,12 +898,10 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
                             QString comment_line = line.mid(0, end_index);
                             comment_lines.append(comment_line);
                             QString comment_joined = comment_lines.join(QString::fromLatin1("\n"));
-                            //qDebug() << "multi line comment: " <<comment_joined;
                             current->setComment(comment_joined);
                             idx = end_index+1;
                          } else {
                             QString comment_joined = comment_lines.join(QString::fromLatin1("\n"));
-                            //qDebug() << "comment err: no } found" << comment_joined;
                             current->setComment(comment_joined);
                             continue;
                         }
@@ -995,7 +912,7 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
 
         } else {
             std::cerr << "error reading pgn file";
-            return 0;
+            return -1;
         }
     }
     return 0;
@@ -1006,12 +923,8 @@ int PgnReader::readGame(QTextStream &in, qint64 offset, chess::Game *g) {
 
     if(offset != 0 && offset > 0) {
         in.seek(offset);
-        //qDebug() << canseek;
     }
-    //qDebug() << "reading game at: " << offset;
     return this->readGame(in, g);
-
-    //return g;
 }
 
 

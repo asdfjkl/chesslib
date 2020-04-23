@@ -22,6 +22,7 @@
 #include <assert.h>
 #include <iostream>
 #include <QDebug>
+#include "constants.h"
 
 namespace chess {
 
