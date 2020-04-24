@@ -1290,7 +1290,7 @@ EcoCode::EcoCode()
 
 EcoInfo EcoCode::classify(Board &b) {
     EcoInfo ret;
-    quint64 b_zobrist = b.zobrist();
+    quint64 b_zobrist = b.get_zobrist();
     if(ECOINFOS.contains(b_zobrist)) {
         EcoInfo e = ECOINFOS[b_zobrist];
         ret.code = e.code;

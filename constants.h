@@ -278,7 +278,7 @@ const int RANDOM_TURN = 780;
 
 // BOARD
 // for board
-const uint8_t EMPTY_POS[120] = {
+const int EMPTY_POS[120] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
@@ -295,7 +295,7 @@ const uint8_t EMPTY_POS[120] = {
 
 
 // initial board position
-const uint8_t INIT_POS[120] = {
+const int INIT_POS[120] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     0xFF, 0x04, 0x02, 0x03, 0x05, 0x06, 0x03, 0x02, 0x04, 0xFF,
@@ -315,7 +315,7 @@ const uint8_t INIT_POS[120] = {
 // between two squares of the board (note the board is
 // encoded as a one dim array of size 120, where A1 = 21, H1 = 28
 // A8 = 91, A8 = 98.
-// the value denotes whether an enemy rook, biship knight, queen, king
+// the value denotes whether an enemy rook, bishop, knight, queen, king
 // on one square can attack the other square. The following encoding
 // is used:
 // Bitposition    Piece
@@ -338,20 +338,20 @@ const uint8_t ATTACK_TABLE[78] = {
     0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A
 };
 
-const uint8_t IDX_BPAWN = 0;
-const uint8_t IDX_WPAWN = 1;
-const uint8_t IDX_KNIGHT = 2;
-const uint8_t IDX_BISHOP = 3;
-const uint8_t IDX_ROOK = 4;
-const uint8_t IDX_QUEEN = 5;
-const uint8_t IDX_KING = 6;
+const int IDX_BPAWN = 0;
+const int IDX_WPAWN = 1;
+const int IDX_KNIGHT = 2;
+const int IDX_BISHOP = 3;
+const int IDX_ROOK = 4;
+const int IDX_QUEEN = 5;
+const int IDX_KING = 6;
 
 // first dim is for different piece types
 // [piece_type[0] is DCOUNT (as in Byte Magazine paper)
 // [piece_type[1] ... [piece_type][4] resp.
 // [piece_type[1] ... [piece_type][8] contain
 // DPOINT table
-const int8_t DIR_TABLE[7][9] = {
+const int DIR_TABLE[7][9] = {
     { 4, -10, -20, -11, -9 ,   0,   0,   0,   0 }, // max 4 black pawn directions, rest 0's
     { 4, +10, +20, +11, +9 ,   0,   0,   0,   0 }, // max 4 white pawn directions, rest 0's
     { 8, -21, -12, +8 , +19, +21, +12, -8, -19 }, // 8 knight directions
@@ -370,115 +370,108 @@ const uint8_t COLOR_FLAG = 7;
 //const uint8_t CASTLE_FLAG = 4;
 //const uint8_t MOVED_FLAG = 4;
 
-// bit index positions for castling right uint8_t
-// bit is set means castling is possible
-const uint8_t CASTLE_WKING_POS = 0;
-const uint8_t CASTLE_WQUEEN_POS = 1;
-const uint8_t CASTLE_BKING_POS = 2;
-const uint8_t CASTLE_BQUEEN_POS = 3;
-
 const QString STARTING_FEN = QString("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
 // board positions
-const uint8_t A1 = 21;
-const uint8_t A2 = 31;
-const uint8_t A3 = 41;
-const uint8_t A4 = 51;
-const uint8_t A5 = 61;
-const uint8_t A6 = 71;
-const uint8_t A7 = 81;
-const uint8_t A8 = 91;
+const int A1 = 21;
+const int A2 = 31;
+const int A3 = 41;
+const int A4 = 51;
+const int A5 = 61;
+const int A6 = 71;
+const int A7 = 81;
+const int A8 = 91;
 
-const uint8_t B1 = 22;
-const uint8_t B2 = 32;
-const uint8_t B3 = 42;
-const uint8_t B4 = 52;
-const uint8_t B5 = 62;
-const uint8_t B6 = 72;
-const uint8_t B7 = 82;
-const uint8_t B8 = 92;
+const int B1 = 22;
+const int B2 = 32;
+const int B3 = 42;
+const int B4 = 52;
+const int B5 = 62;
+const int B6 = 72;
+const int B7 = 82;
+const int B8 = 92;
 
-const uint8_t C1 = 23;
-const uint8_t C2 = 33;
-const uint8_t C3 = 43;
-const uint8_t C4 = 53;
-const uint8_t C5 = 63;
-const uint8_t C6 = 73;
-const uint8_t C7 = 83;
-const uint8_t C8 = 93;
+const int C1 = 23;
+const int C2 = 33;
+const int C3 = 43;
+const int C4 = 53;
+const int C5 = 63;
+const int C6 = 73;
+const int C7 = 83;
+const int C8 = 93;
 
-const uint8_t D1 = 24;
-const uint8_t D2 = 34;
-const uint8_t D3 = 44;
-const uint8_t D4 = 54;
-const uint8_t D5 = 64;
-const uint8_t D6 = 74;
-const uint8_t D7 = 84;
-const uint8_t D8 = 94;
+const int D1 = 24;
+const int D2 = 34;
+const int D3 = 44;
+const int D4 = 54;
+const int D5 = 64;
+const int D6 = 74;
+const int D7 = 84;
+const int D8 = 94;
 
-const uint8_t E1 = 25;
-const uint8_t E2 = 35;
-const uint8_t E3 = 45;
-const uint8_t E4 = 55;
-const uint8_t E5 = 65;
-const uint8_t E6 = 75;
-const uint8_t E7 = 85;
-const uint8_t E8 = 95;
+const int E1 = 25;
+const int E2 = 35;
+const int E3 = 45;
+const int E4 = 55;
+const int E5 = 65;
+const int E6 = 75;
+const int E7 = 85;
+const int E8 = 95;
 
-const uint8_t F1 = 26;
-const uint8_t F2 = 36;
-const uint8_t F3 = 46;
-const uint8_t F4 = 56;
-const uint8_t F5 = 66;
-const uint8_t F6 = 76;
-const uint8_t F7 = 86;
-const uint8_t F8 = 96;
+const int F1 = 26;
+const int F2 = 36;
+const int F3 = 46;
+const int F4 = 56;
+const int F5 = 66;
+const int F6 = 76;
+const int F7 = 86;
+const int F8 = 96;
 
-const uint8_t G1 = 27;
-const uint8_t G2 = 37;
-const uint8_t G3 = 47;
-const uint8_t G4 = 57;
-const uint8_t G5 = 67;
-const uint8_t G6 = 77;
-const uint8_t G7 = 87;
-const uint8_t G8 = 97;
+const int G1 = 27;
+const int G2 = 37;
+const int G3 = 47;
+const int G4 = 57;
+const int G5 = 67;
+const int G6 = 77;
+const int G7 = 87;
+const int G8 = 97;
 
-const uint8_t H1 = 28;
-const uint8_t H2 = 38;
-const uint8_t H3 = 48;
-const uint8_t H4 = 58;
-const uint8_t H5 = 68;
-const uint8_t H6 = 78;
-const uint8_t H7 = 88;
-const uint8_t H8 = 98;
+const int H1 = 28;
+const int H2 = 38;
+const int H3 = 48;
+const int H4 = 58;
+const int H5 = 68;
+const int H6 = 78;
+const int H7 = 88;
+const int H8 = 98;
 
-const uint8_t WHITE_KING = 0x06;
-const uint8_t WHITE_QUEEN = 0x05;
-const uint8_t WHITE_ROOK = 0x04;
-const uint8_t WHITE_BISHOP = 0x03;
-const uint8_t WHITE_KNIGHT = 0x02;
-const uint8_t WHITE_PAWN = 0x01;
-const uint8_t WHITE_ANY_PIECE = 0x07;
+const int WHITE_KING = 0x06;
+const int WHITE_QUEEN = 0x05;
+const int WHITE_ROOK = 0x04;
+const int WHITE_BISHOP = 0x03;
+const int WHITE_KNIGHT = 0x02;
+const int WHITE_PAWN = 0x01;
+const int WHITE_ANY_PIECE = 0x07;
 
-const uint8_t BLACK_KING = 0x86;
-const uint8_t BLACK_QUEEN = 0x85;
-const uint8_t BLACK_ROOK = 0x84;
-const uint8_t BLACK_BISHOP = 0x83;
-const uint8_t BLACK_KNIGHT = 0x82;
-const uint8_t BLACK_PAWN = 0x81;
-const uint8_t BLACK_ANY_PIECE = 0x87;
+const int BLACK_KING = 0x86;
+const int BLACK_QUEEN = 0x85;
+const int BLACK_ROOK = 0x84;
+const int BLACK_BISHOP = 0x83;
+const int BLACK_KNIGHT = 0x82;
+const int BLACK_PAWN = 0x81;
+const int BLACK_ANY_PIECE = 0x87;
 
 // general piece encodings
 // note specific encodings
 // for black/white in board.h
 // general encodings have same values as WHITE
-const uint8_t EMPTY = 0;
-const uint8_t PAWN = 1;
-const uint8_t KNIGHT = 2;
-const uint8_t BISHOP = 3;
-const uint8_t ROOK = 4;
-const uint8_t QUEEN = 5;
-const uint8_t KING = 6;
+const int EMPTY = 0;
+const int PAWN = 1;
+const int KNIGHT = 2;
+const int BISHOP = 3;
+const int ROOK = 4;
+const int QUEEN = 5;
+const int KING = 6;
 
 typedef std::bitset<sizeof(uint8_t)*8> IntBits;
 

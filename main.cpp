@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
     qDebug() << "starting up";
     //return a.exec();
     //QFile file("C:\\Users\\user\\MyFiles\\workspace\\test_databases\\kingbase_test.pgn");
-    //QFile file("C:\\Users\\user\\MyFiles\\workspace\\demo.pgn");
-    QFile file("/home/user/tmp2/demo.pgn");
+    QFile file("C:\\Users\\user\\MyFiles\\workspace\\demo.pgn");
+    //QFile file("/home/user/tmp2/demo.pgn");
 
 
 
@@ -118,14 +118,15 @@ int main(int argc, char *argv[])
 
 
     //QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\KingBaseLite2016-03-E60-E99.pgn";
-    //QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\millionbase-2.22.pgn";
-    QString kingbase = "/home/user/tmp2/millionbase-2.22.pgn";
+    QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\test_databases\\millionbase-2.22.pgn";
+    //QString kingbase = "/home/user/tmp2/millionbase-2.22.pgn";
     //QString kingbase = "C:\\Users\\user\\MyFiles\\workspace\\demo_two_games.pgn";
 
 
     start = std::chrono::steady_clock::now();
     QVector<qint64> offsets = pgnReader.scanPgn(kingbase, true);
-    for(int i=0;i<offsets.size();i++) {
+    //for(int i=0;i<offsets.size();i++) {
+    for(int i=0;i<10;i++) {
         qDebug() << "offset: " << offsets.at(i);
     }
     stop = std::chrono::steady_clock::now();
@@ -163,8 +164,8 @@ int main(int argc, char *argv[])
     qDebug() << "# offsets: " << offsets.size();
     start = std::chrono::steady_clock::now();
     //for(int i=0;i<2190000;i++) {
-    for(int i=0;i<2;i++) {
-    //for(int i=0;i<offsets.size();i++) {
+    //for(int i=0;i<2;i++) {
+    for(int i=0;i<offsets.size();i++) {
     //qDebug() << "# offsets: " << offsets.size();
     //for(int i=0;i<offsets.size();i++) {
         if(i%50000 == 0) {

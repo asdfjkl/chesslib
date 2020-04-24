@@ -127,7 +127,7 @@ bool Game::matchesPosition(quint64 posHash) {
     GameNode* temp = this->getRootNode();
     Board *b = temp->getBoard();
     //std::cout << *b << std::endl;
-    if(temp->getBoard()->pos_hash() == posHash) {
+    if(temp->getBoard()->get_pos_hash() == posHash) {
         return true;
     }
     while(temp->variations.size() > 0) {
@@ -137,7 +137,7 @@ bool Game::matchesPosition(quint64 posHash) {
         //qDebug() << "";
         //qDebug().noquote() << b->printRaw();
         //qDebug() << "";
-        if(temp->getBoard()->pos_hash() == posHash) {
+        if(temp->getBoard()->get_pos_hash() == posHash) {
             return true;
         }
     }

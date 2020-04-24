@@ -96,7 +96,7 @@ Move Polyglot::moveFromEntry(Entry e) {
 QVector<Move> Polyglot::findMoves(Board &board) {
     QVector<Move> bookMoves;
     if(this->readFile) {
-        quint64 zh_board = board.zobrist();
+        quint64 zh_board = board.get_zobrist();
         quint64 low = 0;
         quint64 high = this->book.size() / 16;
         // find entry fast
@@ -131,7 +131,7 @@ bool Polyglot::inBook(Board &board) {
     int cntBookMoves = 0;
 
     if(this->readFile) {
-        quint64 zh_board = board.zobrist();
+        quint64 zh_board = board.get_zobrist();
         quint64 low = 0;
         quint64 high = this->book.size() / 16;
         // find entry fast
