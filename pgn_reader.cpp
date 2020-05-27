@@ -367,7 +367,8 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
 
     Board *board = node->getBoard();
     int to_internal = Board::xy_to_internal(to_col, to_row);
-    QVector<Move> pseudos = board->pseudo_legal_moves_to(to_internal, piece_type, false, board->turn);
+    //QVector<Move> pseudos = board->pseudo_legal_moves_to(to_internal, piece_type, false, board->turn);
+    QVector<Move> pseudos = board->pseudo_legal_moves(chess::ANY_SQUARE, to_internal, piece_type, false, board->turn);
     if(pseudos.size() == 1) {
         Move m = pseudos.at(0);
         this->addMove(node,m);
@@ -390,7 +391,8 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
     Board *board = node->getBoard();
     int from_col = Board::alpha_to_pos(qc_from_col);
     int to_internal = Board::xy_to_internal(to_col, to_row);
-    QVector<Move> pseudos = board->pseudo_legal_moves_to(to_internal, piece_type, false, board->turn);
+    //QVector<Move> pseudos = board->pseudo_legal_moves_to(to_internal, piece_type, false, board->turn);
+    QVector<Move> pseudos = board->pseudo_legal_moves(chess::ANY_SQUARE, to_internal, piece_type, false, board->turn);
     QVector<Move> filter;
     for(int i=0;i<pseudos.size();i++) {
         Move m = pseudos.at(i);
@@ -418,8 +420,9 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
 
     Board *board = node->getBoard();
     int to_internal = Board::xy_to_internal(to_col, to_row);
-    QVector<Move> pseudos = board->pseudo_legal_moves_to(to_internal, piece_type, false, board->turn);
-    QVector<Move> filter;
+    //QVector<Move> pseudos = board->pseudo_legal_moves_to(to_internal, piece_type, false, board->turn);
+    QVector<Move> pseudos = board->pseudo_legal_moves(chess::ANY_SQUARE, to_internal, piece_type, false, board->turn);
+    QVector<Move> filter;    
     for(int i=0;i<pseudos.size();i++) {
         Move m = pseudos.at(i);
         if((m.from / 10) - 2 == from_row) {

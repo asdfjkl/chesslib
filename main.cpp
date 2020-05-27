@@ -8,9 +8,16 @@
 #include <QDebug>
 #include "node_pool.h"
 #include <QTimer>
+#include "testcases.h"
 
 int main(int argc, char *argv[])
 {
+
+    chess::TestCases cases;
+    cases.run_pertf();
+
+
+}
     /*
     QCoreApplication a(argc, argv);
 
@@ -75,6 +82,8 @@ int main(int argc, char *argv[])
     }*/
 
 
+
+    /*
 
     //QCoreApplication a(argc, argv);
     chess::NodePool::reserve();
@@ -201,7 +210,7 @@ int main(int argc, char *argv[])
         //qDebug() << pgnPrinter.printGame(*g);
         //delete g;
         //
-
+/*
         chess::NodePool::deleteNode(g->getRootNode());
         g->reset();
         //qDebug() << chess::NodePool::freeList.size();
@@ -211,8 +220,8 @@ int main(int argc, char *argv[])
     i_millis = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
 
     std::cout << "Reading Kingbase (new parser) :  " << i_millis.count() <<  "ms" << std::endl;
+*/
 
-}
 
 
     // "classic" (jerry < 3.1.0) way of parsing with QRegexp and legal move generation

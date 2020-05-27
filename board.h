@@ -127,8 +127,10 @@ public:
      * @param turn_color              either WHITE or BLACK, i.e. the player to move
      * @return pseudo legal move list
      */
-    QVector<Move> pseudo_legal_moves_from(int from_square_idx, bool with_castles, bool turn_color);
-    QVector<Move> pseudo_legal_moves_to(int to_square, int piece_type, bool with_castles, bool turn);
+    //QVector<Move> pseudo_legal_moves_from(int from_square_idx, bool with_castles, bool turn_color);
+    //QVector<Move> pseudo_legal_moves_to(int to_square, int piece_type, bool with_castles, bool turn);
+
+    QVector<Move> pseudo_legal_moves(int from_square, int to_square, int piece_type, bool generate_castles, bool turn);
 
     /**
      * @brief legal_moves returns move list of all legal moves in position

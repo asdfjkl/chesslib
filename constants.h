@@ -445,6 +445,8 @@ const int H6 = 78;
 const int H7 = 88;
 const int H8 = 98;
 
+const int ANY_SQUARE = 0;
+
 const int WHITE_KING = 0x06;
 const int WHITE_QUEEN = 0x05;
 const int WHITE_ROOK = 0x04;
@@ -472,6 +474,10 @@ const int BISHOP = 3;
 const int ROOK = 4;
 const int QUEEN = 5;
 const int KING = 6;
+
+const int ANY_PIECE = 0x08;
+
+const int FRINGE = 0xFF;
 
 typedef std::bitset<sizeof(uint8_t)*8> IntBits;
 

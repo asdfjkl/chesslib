@@ -34,6 +34,7 @@ SOURCES += \
         pgn_printer.cpp \
         pgn_reader.cpp \
         polyglot.cpp \
+    testcases.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -55,4 +56,5 @@ HEADERS += \
     node_pool.h \
     pgn_printer.h \
     pgn_reader.h \
-    polyglot.h
+    polyglot.h \
+    testcases.h
