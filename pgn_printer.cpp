@@ -125,6 +125,7 @@ QStringList PgnPrinter::printGame(Game &g) {
     //pgn = new QStringList();
 
     // first print the headers
+    //qDebug() << "print headers";
     this->printHeaders(pgn, g);
 
     this->writeLine(QString(""));
@@ -136,6 +137,7 @@ QStringList PgnPrinter::printGame(Game &g) {
         this->printComment(root->getComment());
     }
 
+    //qDebug() << "print game content";
     this->printGameContent((*root));
     this->printResult(g.getResult());
     this->pgn.append(this->currentLine);
@@ -209,18 +211,25 @@ void PgnPrinter::printGameContent(GameNode &g) {
     int cntVar = g.getVariations().count();
     if(cntVar > 0) {
         GameNode* main_variation = g.getVariation(0);
+        //qDebug() << "1";
         Move m = main_variation->getMove();
+        //qDebug() << m.uci();
+        //qDebug() << m.from << " " << m.to;
+        //qDebug() << "1.5";
         this->printMove(*b,m);
         // write nags
+        //qDebug() << "2";
         QVector<int> nags = main_variation->getNags();
         for(int j=0;j<nags.count();j++) {
             int n = nags.at(j);
             this->printNag(n);
         }
+        //qDebug() << "3";
         // write comments
         if(!main_variation->getComment().isEmpty()) {
             this->printComment(main_variation->getComment());
         }
+        //qDebug() << "4";
     }
 
     // now handle all variations (sidelines)

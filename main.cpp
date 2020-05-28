@@ -16,9 +16,6 @@ int main(int argc, char *argv[])
     //chess::TestCases cases;
     //cases.run_pertf();
 
-
-
-
     QCoreApplication a(argc, argv);
 
 
@@ -33,24 +30,35 @@ int main(int argc, char *argv[])
         if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
             throw std::invalid_argument("unable to open file w/ supplied filename");
         }
+
+        chess::PgnReader pgnReader;
+        bool isUtf8 = pgnReader.isUtf8(fn_in);
+        QVector<qint64> offsets = pgnReader.scanPgn(fn_in, isUtf8);
+
         QTextStream in(&file);
         QTextCodec *codecUtf8 = QTextCodec::codecForName("UTF-8");
         QTextCodec *codecLatin1 = QTextCodec::codecForName("ISO 8859-1");
 
-        chess::PgnReader pgnReader;
         if(pgnReader.isUtf8(fn_in)) {
             in.setCodec(codecUtf8);
         } else {
             in.setCodec(codecLatin1);
         }
 
-        chess::Game *g = new chess::Game();
-        pgnReader.readGame(in,g);
+        //qDebug() << "Number of Games:";
+        //qDebug() << offsets.size();
 
         chess::PgnPrinter pgnPrinter;
-        std::cout << pgnPrinter.printGame(*g).join("\n").toStdString() << std::endl;
+        for(int i=0;i<offsets.size();i++) {
+            chess::Game *g = new chess::Game();
+            //std::cout << "READING GAME: " << i << std::endl;
+            pgnReader.readGame(in,offsets.at(i),g);
+            //std::cout << "PRINTING GAME: " << i << std::endl;
+            std::cout << pgnPrinter.printGame(*g).join("\n").toStdString() << std::endl;
+            //std::cout << "PRINTING GAME FIN: " << i << std::endl;
+            std::cout << std::endl;
+        }
     }
-
 
     QTimer::singleShot( 0, &a, &QCoreApplication::quit );
     return a.exec();

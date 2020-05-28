@@ -22,7 +22,7 @@ GameNode* NodePool::makeNode() {
 
     //assert(NodePool::freeList.size() > 0);
     if(NodePool::freeList.size() == 0) {
-        qDebug() << "EMPTY STORE, increasing!";
+        //qDebug() << "EMPTY STORE, increasing!";
         GameNode *node = new GameNode();
         NodePool::freeList.append(node);
     }

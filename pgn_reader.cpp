@@ -114,7 +114,6 @@ QVector<qint64> PgnReader::scanPgn(QString &filename, bool is_utf8) {
 
         // skip comments
         if(line.startsWith("%")) {
-            byteLine = file.readLine();
             continue;
         }
 
@@ -137,7 +136,6 @@ QVector<qint64> PgnReader::scanPgn(QString &filename, bool is_utf8) {
         }
 
         last_pos = file.pos();
-        byteLine = file.readLine();
     }
     // for the last game
     if(game_pos != -1) {
@@ -427,6 +425,7 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
         Move m = pseudos.at(i);
         if((m.from / 10) - 2 == from_row) {
             filter.append(m);
+                    qDebug() << m.uci();
         }
     }
     if(filter.size() == 1) {
@@ -448,6 +447,11 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
 
 bool PgnReader::parsePieceMove(uint8_t piece_type, const QString &line, int &idx, GameNode *&node) {
 
+    //qDebug() << "piece move creation 0";
+    if(idx + 4 < line.size()) {
+        qDebug() << "parsepiece" << line.mid(idx,5);
+    }
+
     // we have a piece move like "Qxe4" where index points to Q
     // First move idx after piece symbol, i.e. to ">x<e4"
     idx+=1;
@@ -458,15 +462,25 @@ bool PgnReader::parsePieceMove(uint8_t piece_type, const QString &line, int &idx
         if(this->isCol(line.at(idx))) {
             //Qe? or Qxe?, now either digit must follow (Qe4 / Qxe4)
             //or we have a disambiguition (Qee5)
+            //qDebug() << "1111111111";
             if(idx+1 < line.size()) {
                 if(this->isRow(line.at(idx+1))) {
                     int to_col = Board::alpha_to_pos(line.at(idx));
                     int to_row = line.at(idx+1).digitValue() - 1;
                     idx+=2;
                     // standard move, i.e. Qe4
+                    //qDebug() << "piece move creation 1";
                     return createPieceMove(piece_type, to_col, to_row, node);
                 } else {
+                    int skip_for_take = 0;
+                    if(line.at(idx+1) == 'x' && idx + 2 < line.length()) {
+                        //System.out.println("fix");
+                        skip_for_take = 1;
+                        idx+=1;
+                    }
+                    //qDebug() << "22222222";
                     if(this->isCol(line.at(idx+1))) {
+                        //qDebug() << "22222222aaaaaa";
                         // we have a disambiguition, that should resolved by
                         // the column denoted in the san, here in @line[idx]
                         int to_col = Board::alpha_to_pos(line.at(idx+1));
@@ -475,7 +489,8 @@ bool PgnReader::parsePieceMove(uint8_t piece_type, const QString &line, int &idx
                             // move w/ disambig on col, i.e. Qee4
                             // provide line[idx] to cratePieceMove to resolve disamb.
                             idx+=3;
-                            return createPieceMove(piece_type, to_col, to_row, node, line.at(idx-3));
+                            //qDebug() << "piece move creation 2";
+                            return createPieceMove(piece_type, to_col, to_row, node, line.at(idx-(3+skip_for_take)));
                         } else {
                             idx+=4;
                             return false;
@@ -490,18 +505,23 @@ bool PgnReader::parsePieceMove(uint8_t piece_type, const QString &line, int &idx
                return false;
            }
        } else {
-            if(idx+1 < line.size() && this->isRow(line.at(idx+1))) {
+            qDebug() << "33333333";
+            if(idx+1 < line.size() && this->isRow(line.at(idx))) {
                 // we have a move with disamb, e.g. Q4xe5 or Q4e5
-                int from_row = line.at(idx+1).digitValue() - 1;
+                int from_row = line.at(idx).digitValue() - 1;
                 if(line.at(idx+1) == QChar::fromLatin1('x')) {
                     idx+=1;
                 }
-                if(idx+3 < line.size() && this->isCol(line.at(idx+2)) && this->isRow(line.at(idx+3))) {
-                    int to_col = Board::alpha_to_pos(line.at(idx+2));
-                    int to_row = line.at(idx+3).digitValue() - 1;
+                if(idx+2 < line.size() && this->isCol(line.at(idx+1)) && this->isRow(line.at(idx+2))) {
+                    int to_col = Board::alpha_to_pos(line.at(idx+1));
+                    int to_row = line.at(idx+2).digitValue() - 1;
                     // parse the ambig move
-                    idx+=4;
-                    return createPieceMove(piece_type, to_col, to_row, node, from_row);
+                    idx+=3;
+                    qDebug() << "creating MOVE";
+                    bool ok = createPieceMove(piece_type, to_col, to_row, node, from_row);
+                    std::cout << *node->getBoard() << std::endl;;
+                    qDebug() << "success: " << ok;
+                    return ok;
                 } else {
                     idx+=3;
                     return false;
@@ -558,15 +578,20 @@ void PgnReader::parseNAG(QString &line, int &idx, GameNode *node) {
 
     if(line[idx] == QChar::fromLatin1('$')) {
         int idx_end = idx;
-        while(idx_end < lineSize && line[idx_end] != QChar::fromLatin1(' ')) {
-            idx_end ++;
+        while(idx_end < lineSize && (line.at(idx_end) == QChar::fromLatin1('$')
+                                     || (line.at(idx_end) >= QChar::fromLatin1('0')
+                                         && line.at(idx_end) <= QChar::fromLatin1('9'))))
+        {
+            idx_end++;
         }
         if(idx_end+1 > idx) {
             bool ok;
+            qDebug() << line.mid(idx+1, idx_end - (idx+1));
             int nr = line.mid(idx+1, idx_end - (idx+1)).toInt(&ok, 10);
             if(ok) {
                 node->addNag(nr);
                 idx = idx_end;
+                qDebug() << "after NAG: " << line.mid(idx, 5);
             } else {
                 idx += 1;
             }
@@ -799,6 +824,16 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
             }
             int idx = 0;
             while(idx < line.size()) {
+                if(idx + 6 << line.size()) {
+                    qDebug() << line.mid(idx, 5);
+                    //assert(current != nullptr);
+                    //qDebug() << "null: "<< +(current == nullptr);
+                    //Board temp = *current->getBoard();
+                    //qDebug() << "got temp board";
+                    //qDebug() << "temp is null: "<< +(temp == nullptr);
+                    //std::cout << *current->getBoard() << std::endl;
+                }
+
                 int tkn = getNetxtToken(line,idx);
                 if(tkn == TKN_EOL) {
                     break;
@@ -830,12 +865,23 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
                     parseCastleMove(line,idx,current);
                 }
                 if(tkn == TKN_ROOK_MOVE) {
+                    if(idx + 3 << line.size()) {
+                        qDebug() << "ROOK: " << line.mid(idx, 4);
+                    }
                     parsePieceMove(ROOK,line,idx,current);
                 }
                 if(tkn == TKN_KNIGHT_MOVE) {
+                    //if(idx + 3 << line.size()) {
+                    //    qDebug() << "KNIGHT: " << line.mid(idx, 4);
+                    //}
                     parsePieceMove(KNIGHT,line,idx,current);
+                    //std::cout << "after night move: ";
+                    //std::cout << std::endl << *current->getBoard() << std::endl;
                 }
                 if(tkn == TKN_BISHOP_MOVE) {
+                    //if(idx + 3 << line.size()) {
+                    //    qDebug() << "BISHOP: " << line.mid(idx, 4);
+                    //}
                     parsePieceMove(BISHOP,line,idx,current);
                 }
                 if(tkn == TKN_QUEEN_MOVE) {
@@ -854,8 +900,15 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
                 }
                 if(tkn == TKN_OPEN_VARIATION) {
                     // put current node on stack, so that we don't forget it.
-                    m_game_stack.push(current);
-                    current = current->getParent();
+                    // however if we are at the root node, something
+                    // is wrong in the PGN. Silently ignore "(" then
+                    //if(idx + 3 << line.size()) {
+                    //    qDebug() << "VARIATION: " << line.mid(idx, 4);
+                    //}
+                    if(current != g->getRootNode()) {
+                        m_game_stack.push(current);
+                        current = current->getParent();
+                    }
                     idx+=1;
                 }
                 if(tkn == TKN_CLOSE_VARIATION) {
@@ -866,6 +919,9 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
                     idx+=1;
                 }
                 if(tkn == TKN_NAG) {
+                    //if(idx + 3 << line.size()) {
+                    //    qDebug() << "NAG" << line.mid(idx, 3);
+                    //}
                     parseNAG(line, idx, current);
                 }
                 if(tkn == TKN_OPEN_COMMENT) {

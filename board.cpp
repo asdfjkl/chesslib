@@ -228,6 +228,12 @@ int Board::get_piece_type_at(int x, int y) const {
     if(x>=0 && x<8 && y>=0 && y <8) {
         int idx = ((y+2)*10) + (x+1);
         int piece = this->board[idx];
+        if(piece == EMPTY) {
+            throw std::invalid_argument("called get_piece_type_at, but field is empty");
+        }
+        if(piece == FRINGE) {
+            throw std::invalid_argument("called get_piece_type_at, but field is in fringe");
+        }
         if(piece > 0x80) {
             return piece - 0x80;
         } else {
@@ -1241,6 +1247,8 @@ bool Board::is_white_at(int idx) const {
 
 void Board::remove_from_piece_list(bool color, int piece_type, int idx) {
 
+    assert(piece_type >= 0 && piece_type < 7);
+    assert(idx >= 21 && idx <= 98);
     int j = -1;
     for(int i=0;i<10;i++) {
         if(this->piece_list[color][piece_type][i] == idx) {
@@ -1260,6 +1268,8 @@ void Board::remove_from_piece_list(bool color, int piece_type, int idx) {
 
 void Board::add_to_piece_list(bool color, int piece_type, int idx) {
 
+    assert(piece_type >= 0 && piece_type < 7);
+    assert(idx >= 21 && idx <= 98);
     for(int i=0;i<10;i++) {
         if(this->piece_list[color][piece_type][i] == EMPTY) {
             this->piece_list[color][piece_type][i] = idx;
@@ -1298,12 +1308,12 @@ void Board::apply(const Move &m) {
         this->old_board[i] = this->board[i];
     }
 
-    uint8_t old_piece_type = this->get_piece_type(m.from);
+    int old_piece_type = this->get_piece_type(m.from);
     bool color = this->get_piece_color(m.from);
     // if target field is not empty, remove from piece list
     // this must be of oppsite color than the currently moving piece
     if(this->board[m.to] != EMPTY) {
-        uint8_t current_target_piece = this->get_piece_type(m.to);
+        int current_target_piece = this->get_piece_type(m.to);
         this->remove_from_piece_list(!color, current_target_piece, m.to);
     }
     // also remove the currently moving piece from the list
@@ -1340,12 +1350,12 @@ void Board::apply(const Move &m) {
         if(this->board[m.to] == EMPTY) {
             if(color == WHITE && ((m.to-m.from == 9) || (m.to-m.from)==11)) {
                 // remove captured pawn
-                this->board[m.to-10] = 0x00;
+                this->board[m.to-10] = EMPTY;
                 this->remove_from_piece_list(BLACK, PAWN, m.to-10);
             }
             if(color == BLACK && ((m.from -m.to == 9) || (m.from - m.to)==11)) {
                 // remove captured pawn
-                this->board[m.to+10] = 0x00;
+                this->board[m.to+10] = EMPTY;
                 this->remove_from_piece_list(WHITE, PAWN, m.to+10);
             }
         }
@@ -1479,7 +1489,6 @@ void Board::undo() {
     //qDebug() << "undo";
     if(!this->undo_available) {
         throw std::logic_error("must call board.apply(move) each time before calling undo() ");
-
     } else {
         if(this->last_was_null) {
             this->turn = !this->turn;
@@ -1618,13 +1627,13 @@ int Board::alpha_to_pos(QChar alpha) {
     } else if(alpha == QChar::fromLatin1('H') || alpha == QChar::fromLatin1('h')) {
         return 7;
     }
-    return GENERAL_ERROR;
+    throw new std::invalid_argument("alpha_to_pos: "+QString(alpha).toStdString());
 }
 
 QPoint Board::internal_to_xy(int internal_coord) {
 
     if(internal_coord < 21 || internal_coord > 98) {
-        return QPoint(-1,-1);
+        throw new std::invalid_argument("internal_to_xy: "+std::to_string(internal_coord));
     } else {
         int col = internal_coord % 10 - 1;
         int row = (internal_coord / 10) - 2;
@@ -1635,7 +1644,7 @@ QPoint Board::internal_to_xy(int internal_coord) {
 int Board::xy_to_internal(int x, int y) {
 
     if(x < 0 || x > 7 || y < 0 || y > 7) {
-        return GENERAL_ERROR;
+        throw new std::invalid_argument("xy_to_internal: "+std::to_string(x)+" "+std::to_string(y));
     } else {
         return (x+1) + ((y*10)+20);
     }
@@ -1646,6 +1655,7 @@ int Board::xy_to_internal(int x, int y) {
 // current board
 QString Board::san(const Move &m) {
 
+    //qDebug() << "SAN 1";
     QString san = QString("");
     // first check for null move
     if(m.is_null) {
@@ -1653,12 +1663,14 @@ QString Board::san(const Move &m) {
         return san;
     }
 
+    //qDebug() << "SAN 2";
     // first test for checkmate and check (to be appended later)
     // create temp board, since appyling move and
     // testing for checkmate (which again needs
     // application of a move) makes it impossible
     // to undo (undo can only be done once, not twice in a row)
 
+    //qDebug() << "SAN 3";
     Board b_temp = Board(*this);
     b_temp.apply(m);
     bool is_check = b_temp.is_check();
@@ -1680,8 +1692,10 @@ QString Board::san(const Move &m) {
         } else if(is_check) {
             san.append("+");
         }
+        //qDebug() << "SAN 4";
         return san;
     } else {
+        //qDebug() << "SAN 5";
         int piece_type = this->get_piece_type(m.from);
         int piece = this->get_piece_at(m.from);
         if(piece_type == KNIGHT) {
@@ -1704,19 +1718,25 @@ QString Board::san(const Move &m) {
         int this_row = (m.from / 10) - 1;
         int this_col = m.from % 10;
 
+        //qDebug() << "SAN 6";
         // find amibguous moves (except for pawns)
         if(piece_type != PAWN) {
             // if piece list contains only one piece, skip move generation
             // for testing disambiguity
-            if(this->piece_list[this->turn][piece][1] == EMPTY) {
+            //qDebug() << "piece: " << piece;
+            if(this->piece_list[this->turn][piece_type][1] == EMPTY) {
                 goto ambig_check_finished;
             }
+            //qDebug() << "SAN 6a";
             //QVector<Move> pseudo_legals = this->pseudo_legal_moves_from(m.from, false, this->turn);
             QVector<Move> pseudo_legals = this->pseudo_legal_moves(chess::ANY_SQUARE, m.to, piece_type, false, this->turn);
+            //qDebug() << "SAN 6b";
             if(pseudo_legals.size() == 1) {
                 goto ambig_check_finished;
             }
+            //qDebug() << "SAN 6c";
             QVector<Move> legals = this->legals_from_pseudos(pseudo_legals);
+            //qDebug() << "SAN 6d";
             if(legals.size() == 1) {
                 goto ambig_check_finished;
             }
@@ -1753,6 +1773,7 @@ QString Board::san(const Move &m) {
             }
         }
         ambig_check_finished:
+        //qDebug() << "SAN 7";
         // handle a capture, i.e. if destination field
         // is not empty
         // in case of an en-passent capture, the destiation field
