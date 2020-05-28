@@ -118,7 +118,7 @@ QVector<qint64> PgnReader::scanPgn(QString &filename, bool is_utf8) {
             continue;
         }
 
-        if(!inComment && line.startsWith("[")) {
+        if(!inComment && line.startsWith("[")) { // from Latin1
 
             if(game_pos == -1) {
                 game_pos = last_pos;
@@ -626,8 +626,8 @@ int PgnReader::getNetxtToken(QString &line, int &idx) {
                             return TKN_RES_WHITE_WIN;
                         }
                     }
-                    if(idx+2 < lineSize && line.at(idx+2) == QChar::fromLatin1(('/'))) {
-                        if(idx+6 < lineSize && line.mid(idx,idx+6) == QString::fromLatin1("1/2-1/2")) {
+                    if(idx+2 < lineSize && line.at(idx+1) == QChar::fromLatin1(('/'))) {
+                        if(idx+6 < lineSize && line.mid(idx,7) == QString::fromLatin1("1/2-1/2")) {
                             return TKN_RES_DRAW;
                         }
                     }

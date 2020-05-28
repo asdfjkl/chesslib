@@ -13,69 +13,49 @@
 int main(int argc, char *argv[])
 {
 
-    chess::TestCases cases;
-    cases.run_pertf();
+    //chess::TestCases cases;
+    //cases.run_pertf();
 
 
-}
-    /*
+
+
     QCoreApplication a(argc, argv);
 
 
-    if(a.arguments().size() > 3) {
-        QString opt = a.arguments().at(1);
-        if(opt == QString::fromLatin1("--old")) {
-            QString fn_in = a.arguments().at(2);
-            QFile file(fn_in);
+    if(a.arguments().size() > 1) {
 
-            QString fn_out = a.arguments().at(3);
-            qDebug() << fn_out;
 
-            if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                throw std::invalid_argument("unable to open file w/ supplied filename");
-            }
-            QTextStream in(&file);
-            QTextCodec *codec = QTextCodec::codecForName("UTF-8");
-            in.setCodec(codec);
-            chess::PgnReader pgnReader;
+        chess::NodePool::reserve();
 
-            chess::Game *g = pgnReader.readGame(in);
-            //pgnReader.nReadGame(in,g);
+        QString fn_in = a.arguments().at(1);
+        QFile file(fn_in);
 
-            chess::PgnPrinter pgnPrinter;
-            std::cout << pgnPrinter.printGame(*g).join("\n").toStdString() << std::endl;
-            pgnPrinter.writeGame(*g, fn_out);
-
-        } else {
-            chess::NodePool::reserve();
-
-            QString fn_in = a.arguments().at(2);
-            QFile file(fn_in);
-
-            QString fn_out = a.arguments().at(3);
-            qDebug() << fn_out;
-
-            if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                throw std::invalid_argument("unable to open file w/ supplied filename");
-            }
-            QTextStream in(&file);
-            QTextCodec *codec = QTextCodec::codecForName("UTF-8");
-            in.setCodec(codec);
-            chess::PgnReader pgnReader;
-
-            chess::Game *g = new chess::Game();
-            pgnReader.nReadGame(in,g);
-
-            chess::PgnPrinter pgnPrinter;
-            std::cout << pgnPrinter.printGame(*g).join("\n").toStdString() << std::endl;
-            pgnPrinter.writeGame(*g, fn_out);
+        if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            throw std::invalid_argument("unable to open file w/ supplied filename");
         }
+        QTextStream in(&file);
+        QTextCodec *codecUtf8 = QTextCodec::codecForName("UTF-8");
+        QTextCodec *codecLatin1 = QTextCodec::codecForName("ISO 8859-1");
+
+        chess::PgnReader pgnReader;
+        if(pgnReader.isUtf8(fn_in)) {
+            in.setCodec(codecUtf8);
+        } else {
+            in.setCodec(codecLatin1);
+        }
+
+        chess::Game *g = new chess::Game();
+        pgnReader.readGame(in,g);
+
+        chess::PgnPrinter pgnPrinter;
+        std::cout << pgnPrinter.printGame(*g).join("\n").toStdString() << std::endl;
     }
+
 
     QTimer::singleShot( 0, &a, &QCoreApplication::quit );
     return a.exec();
 }
-*/
+
     /*
     if(argc > 1) {
         qDebug() << argc[1]
