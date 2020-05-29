@@ -50,14 +50,16 @@ int main(int argc, char *argv[])
         qDebug() << "scanning finished";
         //qDebug() << offsets.size();
 
-        chess::Game *g = new chess::Game();
+
         chess::PgnPrinter pgnPrinter;
         for(int i=0;i<offsets.size();i++) {
             //std::cout << "READING GAME: " << i << std::endl;
+            chess::Game *g = new chess::Game();
             pgnReader.readGame(in,offsets.at(i),g);
             //std::cout << pgnPrinter.printGame(*g).join("\n").toStdString() << std::endl;
             //std::cout << std::endl;
-            g->reset();
+            //g->reset();
+            delete g;
         }
         qDebug() << "read succ";
     }

@@ -62,8 +62,8 @@ void GameNode::reset() {
     this->m.promotion_piece = 0;
     this->m.is_null = true;
 
-    this->arrows.clear();
-    this->coloredFields.clear();
+    //this->arrows.clear();
+    //this->coloredFields.clear();
 
 }
 
@@ -83,6 +83,9 @@ GameNode::~GameNode() {
     for(int i=0;i<this->variations.size();i++) {
         delete this->variations.at(i);
     }
+    this->nags.clear();
+    this->arrows.clear();
+    this->coloredFields.clear();
     this->variations.clear();
 }
 
