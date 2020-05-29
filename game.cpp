@@ -28,7 +28,7 @@ namespace chess {
 Game::Game() {
 
     //this->root = new GameNode();
-    this->root = new GameNode();//NodePool::makeNode();
+    this->root = NodePool::makeNode();
     this->result = RES_UNDEF;
     this->current = root;
     this->treeWasChanged = false;
@@ -40,10 +40,12 @@ Game::Game() {
 
 void Game::reset() {
 
-    this->root = new GameNode(); // NodePool::makeNode();
+    NodePool::deleteNode(this->root);
+    this->root = NodePool::makeNode();
     this->result = RES_UNDEF;
     this->current = root;
-    this->treeWasChanged = false;
+    this->treeWasChanged = true;
+    this->headers.clear();
 
     this->wasEcoClassified = false;
 }

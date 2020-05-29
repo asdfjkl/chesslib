@@ -51,6 +51,20 @@ void GameNode::reset() {
     this->depthCache = 0;
     this->userWasInformedAboutResult = false;
     this->variations.clear();
+
+    this->nags.clear();
+    //this->comment.resize(0);
+    //this->san_cache.resize(0);
+
+    this->board = Board(true);
+    this->m.from = 0;
+    this->m.to = 0;
+    this->m.promotion_piece = 0;
+    this->m.is_null = true;
+
+    this->arrows.clear();
+    this->coloredFields.clear();
+
 }
 
 GameNode::~GameNode() {

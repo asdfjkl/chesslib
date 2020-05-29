@@ -330,6 +330,9 @@ void PgnReader::addMove(GameNode *&node, Move &m) {
 
 bool PgnReader::parsePawnMove(QString &line, int &idx, GameNode *&node) {
 
+    //if(idx +4 < line.size()) {
+    //    std::cout << "PARSING PAWN: " << line.mid(idx,5).toStdString() << std::endl;
+    //}
     int col = Board::alpha_to_pos(line.at(idx));
     Board* board = node->getBoard();
     if(idx+1 < line.size()) {
@@ -364,6 +367,7 @@ bool PgnReader::parsePawnMove(QString &line, int &idx, GameNode *&node) {
                             return true;
                         } else { // just a normal move, like exd4
                             Move m = Move(col, row_from, col_to, row_to);
+                            //std::cout << "GOT PAWN MOVE: " << m.uci().toStdString() << std::endl;
                             this->addMove(node, m);
                             idx += 4;
                             return true;
@@ -894,15 +898,16 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
             }
             int idx = 0;
             while(idx < line.size()) {
-                if(idx + 6 << line.size()) {
+                //if(idx + 6 << line.size()) {
                     //qDebug() << line.mid(idx, 5);
+                    //std::cout << "TKN: " << line.mid(idx,5).toStdString() << std::endl;
                     //assert(current != nullptr);
                     //qDebug() << "null: "<< +(current == nullptr);
                     //Board temp = *current->getBoard();
                     //qDebug() << "got temp board";
                     //qDebug() << "temp is null: "<< +(temp == nullptr);
                     //std::cout << *current->getBoard() << std::endl;
-                }
+                //}
 
                 int tkn = getNetxtToken(line,idx);
                 if(tkn == TKN_EOL) {
