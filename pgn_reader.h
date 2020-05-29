@@ -61,6 +61,7 @@ public:
     bool isUtf8(const QString &filename);
 
     QVector<qint64> scanPgn(QString &filename, bool isUtf8);
+    QVector<qint64> scanPgn1(QString &filename, bool is_utf8);
     PgnHeader readSingleHeaderFromPgnAt(QString &filename, qint64 offset, bool isUtf8);
 
     int readGameFromString(QString &pgn_string, chess::Game *g);

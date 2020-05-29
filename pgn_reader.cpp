@@ -113,11 +113,11 @@ QVector<qint64> PgnReader::scanPgn(QString &filename, bool is_utf8) {
         }
 
         // skip comments
-        if(line.startsWith("%")) {
+        if(line.startsWith(QString::fromLatin1("%"))) {
             continue;
         }
 
-        if(!inComment && line.startsWith("[")) { // from Latin1
+        if(!inComment && line.startsWith(QString::fromLatin1("["))) { // from Latin1
 
             if(game_pos == -1) {
                 game_pos = last_pos;
@@ -125,9 +125,9 @@ QVector<qint64> PgnReader::scanPgn(QString &filename, bool is_utf8) {
             last_pos = file.pos();
             continue;
         }
-        if((!inComment && line.contains("{"))
-                || (inComment && line.contains("}"))) {
-            inComment = line.lastIndexOf("{") > line.lastIndexOf("}");
+        if((!inComment && line.contains(QString::fromLatin1("{")))
+                || (inComment && line.contains(QString::fromLatin1("}")))) {
+            inComment = line.lastIndexOf(QString::fromLatin1("{")) > line.lastIndexOf(QString::fromLatin1("}"));
         }
 
         if(game_pos != -1) {
@@ -146,6 +146,76 @@ QVector<qint64> PgnReader::scanPgn(QString &filename, bool is_utf8) {
     return offsets;
 }
 
+
+QVector<qint64> PgnReader::scanPgn1(QString &filename, bool is_utf8) {
+
+    QVector<qint64> offsets;
+    QFile file(filename);
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return offsets;
+
+    bool inComment = false;
+
+    qint64 game_pos = -1;
+
+    QTextStream in(&file);
+    QTextCodec *codec;
+    if(is_utf8) {
+        codec = QTextCodec::codecForName("UTF-8");
+    } else {
+        codec = QTextCodec::codecForName("ISO 8859-1");
+    }
+    in.setCodec(codec);
+
+    //QByteArray byteLine;
+    QString line("");
+    qint64 last_pos = file.pos();
+
+    int i= 0;
+    while(!in.atEnd()) {
+        i++;
+        //byteLine = file.readLine();
+        //if(!is_utf8) {
+        //    line = QString::fromLatin1(byteLine);
+        //} else {
+        //    line = QString::fromUtf8(byteLine);
+        //}
+        in.readLineInto(&line);
+
+        // skip comments
+        if(line.startsWith("%")) {
+            continue;
+        }
+
+        if(!inComment && line.startsWith(QString::fromLatin1("["))) { // from Latin1
+
+            if(game_pos == -1) {
+                game_pos = last_pos;
+            }
+            //last_pos = file.pos();
+            continue;
+        }
+        if((!inComment && line.contains("{"))
+                || (inComment && line.contains(QString::fromLatin1("}")))) {
+            inComment = line.lastIndexOf(QString::fromLatin1("{")) > line.lastIndexOf(QString::fromLatin1("}"));
+        }
+
+        if(game_pos != -1) {
+            offsets.append(game_pos);
+            game_pos = -1;
+        }
+
+        //last_pos = file.pos();
+    }
+    // for the last game
+    if(game_pos != -1) {
+        offsets.append(game_pos);
+        game_pos = -1;
+    }
+
+    return offsets;
+}
 
 
 PgnHeader PgnReader::readSingleHeaderFromPgnAt(QString &filename, qint64 offset, bool isUtf8) {
@@ -425,7 +495,7 @@ bool PgnReader::createPieceMove(uint8_t piece_type, int to_col, int to_row, Game
         Move m = pseudos.at(i);
         if((m.from / 10) - 2 == from_row) {
             filter.append(m);
-                    qDebug() << m.uci();
+                    //qDebug() << m.uci();
         }
     }
     if(filter.size() == 1) {
@@ -449,7 +519,7 @@ bool PgnReader::parsePieceMove(uint8_t piece_type, const QString &line, int &idx
 
     //qDebug() << "piece move creation 0";
     if(idx + 4 < line.size()) {
-        qDebug() << "parsepiece" << line.mid(idx,5);
+        //qDebug() << "parsepiece" << line.mid(idx,5);
     }
 
     // we have a piece move like "Qxe4" where index points to Q
@@ -505,7 +575,7 @@ bool PgnReader::parsePieceMove(uint8_t piece_type, const QString &line, int &idx
                return false;
            }
        } else {
-            qDebug() << "33333333";
+            //qDebug() << "33333333";
             if(idx+1 < line.size() && this->isRow(line.at(idx))) {
                 // we have a move with disamb, e.g. Q4xe5 or Q4e5
                 int from_row = line.at(idx).digitValue() - 1;
@@ -517,10 +587,10 @@ bool PgnReader::parsePieceMove(uint8_t piece_type, const QString &line, int &idx
                     int to_row = line.at(idx+2).digitValue() - 1;
                     // parse the ambig move
                     idx+=3;
-                    qDebug() << "creating MOVE";
+                    //qDebug() << "creating MOVE";
                     bool ok = createPieceMove(piece_type, to_col, to_row, node, from_row);
-                    std::cout << *node->getBoard() << std::endl;;
-                    qDebug() << "success: " << ok;
+                    //std::cout << *node->getBoard() << std::endl;;
+                    //qDebug() << "success: " << ok;
                     return ok;
                 } else {
                     idx+=3;
@@ -586,12 +656,12 @@ void PgnReader::parseNAG(QString &line, int &idx, GameNode *node) {
         }
         if(idx_end+1 > idx) {
             bool ok;
-            qDebug() << line.mid(idx+1, idx_end - (idx+1));
+            //qDebug() << line.mid(idx+1, idx_end - (idx+1));
             int nr = line.mid(idx+1, idx_end - (idx+1)).toInt(&ok, 10);
             if(ok) {
                 node->addNag(nr);
                 idx = idx_end;
-                qDebug() << "after NAG: " << line.mid(idx, 5);
+                //qDebug() << "after NAG: " << line.mid(idx, 5);
             } else {
                 idx += 1;
             }
@@ -825,7 +895,7 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
             int idx = 0;
             while(idx < line.size()) {
                 if(idx + 6 << line.size()) {
-                    qDebug() << line.mid(idx, 5);
+                    //qDebug() << line.mid(idx, 5);
                     //assert(current != nullptr);
                     //qDebug() << "null: "<< +(current == nullptr);
                     //Board temp = *current->getBoard();
@@ -866,7 +936,7 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
                 }
                 if(tkn == TKN_ROOK_MOVE) {
                     if(idx + 3 << line.size()) {
-                        qDebug() << "ROOK: " << line.mid(idx, 4);
+                        //qDebug() << "ROOK: " << line.mid(idx, 4);
                     }
                     parsePieceMove(ROOK,line,idx,current);
                 }
@@ -939,32 +1009,31 @@ int PgnReader::readGame(QTextStream& in, chess::Game* g) {
                         // we already have the comment part of the current line,
                         // so read-in the next line, and then loop until we find
                         // the end marker "}"
-                        bool readOK = in.readLineInto(&line);
-                        if(!readOK) {
-                            QString comment_joined = comment_lines.join(QString::fromLatin1("\n"));
-                            current->setComment(comment_joined);
-                            continue;
-                        }
-                        while(!line.isEmpty() && !line.contains(QString::fromLatin1("}"))) {
-                            comment_lines.append(line.trimmed());
+                        int linesRead = 0;
+                        while(linesRead < 50) {
                             bool readOK = in.readLineInto(&line);
                             if(!readOK) {
                                 break;
+                            } else {
+                                int end_index = line.indexOf(QString::fromLatin1("}"));
+                                if(end_index >= 0) {
+                                    comment_lines.append(line.mid(0, end_index));
+                                    QString comment_joined = comment_lines.join(QString::fromLatin1("\n"));
+                                    current->setComment(comment_joined);
+                                    idx = end_index+1;
+                                    break;
+                                } else {
+                                    comment_lines.append(line);
+                                    linesRead++;
+                                }
                             }
                         }
-                        int end_index = line.indexOf(QString::fromLatin1("}"));
-                        if(end_index >= 0) {
-                            QString comment_line = line.mid(0, end_index);
-                            comment_lines.append(comment_line);
+                        // if we have read 50 lines or more, we have not seen a closing
+                        // bracket and thus don't have set the comment in the while loop
+                        if(linesRead >= 50) {
                             QString comment_joined = comment_lines.join(QString::fromLatin1("\n"));
                             current->setComment(comment_joined);
-                            idx = end_index+1;
-                         } else {
-                            QString comment_joined = comment_lines.join(QString::fromLatin1("\n"));
-                            current->setComment(comment_joined);
-                            continue;
                         }
-
                     }
                 }
             }

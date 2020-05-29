@@ -33,8 +33,10 @@ int main(int argc, char *argv[])
 
         chess::PgnReader pgnReader;
         bool isUtf8 = pgnReader.isUtf8(fn_in);
-        QVector<qint64> offsets = pgnReader.scanPgn(fn_in, isUtf8);
+        qDebug() << "Detected Utf8: " << isUtf8;
+        QVector<qint64> offsets = pgnReader.scanPgn(fn_in, false);
 
+        //qDebug() << "scanning finished!";
         QTextStream in(&file);
         QTextCodec *codecUtf8 = QTextCodec::codecForName("UTF-8");
         QTextCodec *codecLatin1 = QTextCodec::codecForName("ISO 8859-1");
@@ -53,10 +55,8 @@ int main(int argc, char *argv[])
             chess::Game *g = new chess::Game();
             //std::cout << "READING GAME: " << i << std::endl;
             pgnReader.readGame(in,offsets.at(i),g);
-            //std::cout << "PRINTING GAME: " << i << std::endl;
-            std::cout << pgnPrinter.printGame(*g).join("\n").toStdString() << std::endl;
-            //std::cout << "PRINTING GAME FIN: " << i << std::endl;
-            std::cout << std::endl;
+            //std::cout << pgnPrinter.printGame(*g).join("\n").toStdString() << std::endl;
+            //std::cout << std::endl;
         }
     }
 
