@@ -30,65 +30,20 @@ int GameNode::id = 0;
 
 GameNode::GameNode() {
 
-    //this->variations = new QList<GameNode*>();
     this->board = Board(true);
-    //this->comment = QString("");
-    //this->nags = new QList<int>();
     this->parent = nullptr;
-    //this->m = 0;
     this->nodeId = this->initId();
-    //this->san_cache = QString("");
-    //this->arrows = new QList<Arrow*>();
-    //this->coloredFields = new QList<ColoredField*>();
     this->depthCache = 0;
     this->userWasInformedAboutResult = false;
-
 }
 
-void GameNode::reset() {
-
-    this->parent = nullptr;
-    this->depthCache = 0;
-    this->userWasInformedAboutResult = false;
-    this->variations.clear();
-
-    this->nags.clear();
-    //this->comment.resize(0);
-    //this->san_cache.resize(0);
-
-    this->board = Board(true);
-    this->m.from = 0;
-    this->m.to = 0;
-    this->m.promotion_piece = 0;
-    this->m.is_null = true;
-
-    //this->arrows.clear();
-    //this->coloredFields.clear();
-
-}
-
+/*
 GameNode::~GameNode() {
-    //delete this->m;
-    //for(int i=0;i<this->arrows->size();i++) {
-    //    delete this->arrows->at(i);
-    //}
-    //delete this->arrows;
-
-    //for(int i=0;i<this->coloredFields->size();i++) {
-    //    delete this->coloredFields->at(i);
-    //}
-    //delete this->coloredFields;
-    //delete this->nags;
-    //delete this->board;
     for(int i=0;i<this->variations.size();i++) {
         delete this->variations.at(i);
     }
-    this->nags.clear();
-    this->arrows.clear();
-    this->coloredFields.clear();
-    this->variations.clear();
 }
-
+*/
 void GameNode::setMove(Move &m) {
     this->m = m;
 }

@@ -6,7 +6,6 @@
 #include "pgn_printer.h"
 #include <iostream>
 #include <QDebug>
-#include "node_pool.h"
 #include <QTimer>
 #include "testcases.h"
 
@@ -21,8 +20,6 @@ int main(int argc, char *argv[])
 
     if(a.arguments().size() > 1) {
 
-
-        chess::NodePool::reserve();
 
         QString fn_in = a.arguments().at(1);
         QFile file(fn_in);

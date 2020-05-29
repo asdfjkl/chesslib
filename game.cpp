@@ -21,7 +21,6 @@
 #include "game.h"
 #include <QDebug>
 #include <iostream>
-#include "node_pool.h"
 
 namespace chess {
 
@@ -36,18 +35,6 @@ Game::Game() {
     this->wasEcoClassified = false;
     //this->ecoInfo("","");
 
-}
-
-void Game::reset() {
-
-    NodePool::deleteNode(this->root);
-    this->root = NodePool::makeNode();
-    this->result = RES_UNDEF;
-    this->current = root;
-    this->treeWasChanged = true;
-    this->headers.clear();
-
-    this->wasEcoClassified = false;
 }
 
 Game::~Game() {
@@ -271,7 +258,7 @@ void Game::applyMove(Move &m) {
         Board *b_current = current->getBoard();
         Board b_child = Board(*b_current);
         b_child.apply(m);
-        GameNode *new_current = NodePool::makeNode();
+        GameNode *new_current = new GameNode();
         new_current->setBoard(b_child);
         new_current->setMove(m);
         new_current->setParent(current);

@@ -38,8 +38,6 @@ public:
      */
     bool isTreeChanged();
 
-    void reset();
-
     /**
      *  @brief call this function with true if an operation was carried
      *         out that fundamentally changed the tree structure (i.e.

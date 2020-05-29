@@ -45,9 +45,9 @@ public:
      *        In general, member functions from Game() to manage
      *        the tree should be used.
      */
-    ~GameNode();
+    //~GameNode();
 
-    void reset();
+
 
     /**
      * @brief getId each game node is assigned a unique id

@@ -28,7 +28,6 @@
 #include <QDebug>
 #include <QTextCodec>
 #include <QDataStream>
-#include "node_pool.h"
 #include "assert.h"
 
 namespace chess {
@@ -314,7 +313,7 @@ bool PgnReader::isRow(const QChar &c) {
 
 void PgnReader::addMove(GameNode *&node, Move &m) {
 
-    GameNode *next = NodePool::makeNode();
+    GameNode *next = new GameNode(); //NodePool::makeNode();
     Board* board = node->getBoard();
 
     Board b_next = Board(*board);
